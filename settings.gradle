@@ -1,0 +1,2 @@
+rootProject.name='itemPool'
+include ':atopic01', ':basic'
