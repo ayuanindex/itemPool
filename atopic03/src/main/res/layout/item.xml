@@ -51,8 +51,16 @@
         android:layout_weight="1"
         android:gravity="center"
         android:textColor="#222"
-        android:textSize="@dimen/sp_12"
+        android:textSize="@dimen/sp_10"
         tools:text="数量" />
 
-
+    <TextView
+        android:id="@+id/tv6"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:textColor="#222"
+        android:textSize="@dimen/sp_16"
+        tools:text="生产线" />
 </LinearLayout>

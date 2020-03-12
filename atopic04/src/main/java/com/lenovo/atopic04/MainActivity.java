@@ -1,4 +1,4 @@
-package com.lenovo.itempool;
+package com.lenovo.atopic04;
 
 import android.app.DatePickerDialog;
 import android.view.View;
@@ -13,20 +13,18 @@ import com.lenovo.basic.base.act.BaseActivity;
 import com.lenovo.basic.utils.Network;
 
 import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
-/**
- * 编码实现查询售出记录
- */
 public class MainActivity extends BaseActivity {
     private TextView mTvMoney;
     private TextView mTvDate;
@@ -63,54 +61,38 @@ public class MainActivity extends BaseActivity {
         query();
     }
 
-    //查询售出记录
+    @SuppressWarnings("CheckResult")
     private void query() {
-        map(apiService.getUserSellInfoTEditer(), mTvDate.getText().toString())
-                .subscribe(dataBeans -> {
-                    int totalMoney = 0;
-                    // 计算总价格
+        //存储车辆信息
+        Map<Integer, String> carTypeMap = new HashMap<>();
+        //请求车辆信息
+        apiService.getAllCarInfo()
+                .map(CarInfo::getData)
+                .flatMap(dataBeans -> {
+                    //保存车辆信息
                     for (int i = 0; i < dataBeans.size(); i++) {
-                        Bean.DataBean dataBean = dataBeans.get(i);
-                        totalMoney += dataBean.getPrice()*dataBean.getNum();
+                        CarInfo.DataBean dataBean = dataBeans.get(i);
+                        carTypeMap.put(dataBean.getId(), dataBean.getContent());
                     }
-                    mTvMoney.setText("售出总额：" +new DecimalFormat("###,###,###").format(totalMoney));
-                    //显示列表数据
-                    mLv.setAdapter(new MyAdapter(dataBeans));
-                }, throwable -> throwable.printStackTrace());
-    }
-
-
-    /**
-     * 数据处理
-     */
-    private Observable<List<Bean.DataBean>> map(Observable<Bean> observable, String startDate) {
-        //开始时间
-        long startTime = 0;
-        try {
-            startTime = sdfParse2.parse(startDate).getTime();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        long finalStartTime = startTime;
-        return observable.map(Bean::getData)
-                .map(dataBeans -> {
-                    //过滤非当前时间数据
-                    List<Bean.DataBean> data = new ArrayList<>();
-                    for (int i = 0; i < dataBeans.size(); i++) {
-                        long tempTime = Long.valueOf(dataBeans.get(i).getTime() + "000");
-                        if (tempTime >= finalStartTime && tempTime < finalStartTime + dayOfTimeMillin) {
-                            Bean.DataBean dataBean = dataBeans.get(i);
-                            //添加数据，即格式化好的时间字符串
-                            dataBean.setTimeStr(sdf.format(new Date(tempTime)));
-                            data.add(dataBean);
-                        }
-                    }
-                    return data;
+                    //请求全部卖出记录
+                    return map(apiService.getAllUserSellOutLog(), mTvDate.getText().toString());
                 })
                 .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(this.bindToLifecycle())
+                .subscribe(dataBeans -> {
+                    int totalMoney = 0;
+                    for (int i = 0; i < dataBeans.size(); i++) {
+                        SaleLog.DataBean dataBean = dataBeans.get(i);
+                        totalMoney += dataBean.getGold()*dataBean.getNum();
+                        dataBean.setCarType(carTypeMap.get(dataBean.getCarId()));
+                    }
+                    //设置金额
+                    mTvMoney.setText("卖出总额：" + new DecimalFormat("###,###").format(totalMoney));
+                    //设置列表数据
+                    mLv.setAdapter(new MyAdapter(dataBeans));
+                }, Throwable::printStackTrace);
     }
-
 
     /**
      * 弹出日期选择框
@@ -125,7 +107,40 @@ public class MainActivity extends BaseActivity {
             }
         });
         datePickerDialog.show();
-        datePickerDialog.updateDate(2019, 11, 20);
+        datePickerDialog.updateDate(2019, 10, 23);
+    }
+
+
+
+    /**
+     * 数据处理
+     */
+    private Observable<List<SaleLog.DataBean>> map(Observable<SaleLog> observable, String startDate) {
+        //开始时间
+        long startTime = 0;
+        try {
+            startTime = sdfParse2.parse(startDate).getTime();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        long finalStartTime = startTime;
+        return observable.map(SaleLog::getData)
+                .map(dataBeans -> {
+                    //过滤非当前时间数据
+                    List<SaleLog.DataBean> data = new ArrayList<>();
+                    for (int i = 0; i < dataBeans.size(); i++) {
+                        long tempTime = Long.valueOf(dataBeans.get(i).getTime() + "000");
+                        if (tempTime >= finalStartTime && tempTime < finalStartTime + dayOfTimeMillin) {
+                            SaleLog.DataBean dataBean = dataBeans.get(i);
+                            //添加数据，即格式化好的时间字符串
+                            dataBean.setTimeStr(sdf.format(new Date(tempTime)));
+                            data.add(dataBean);
+                        }
+                    }
+                    return data;
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
     }
 
 
@@ -134,9 +149,9 @@ public class MainActivity extends BaseActivity {
      */
     private class MyAdapter extends BaseAdapter {
 
-        private List<Bean.DataBean> dataBeans;
+        private List<SaleLog.DataBean> dataBeans;
 
-        public MyAdapter(List<Bean.DataBean> dataBeans) {
+        public MyAdapter(List<SaleLog.DataBean> dataBeans) {
             this.dataBeans = dataBeans;
         }
 
@@ -165,10 +180,10 @@ public class MainActivity extends BaseActivity {
             } else {
                 holder = (ViewHolder) convertView.getTag();
             }
-            Bean.DataBean dataBean = dataBeans.get(position);
+            SaleLog.DataBean dataBean = dataBeans.get(position);
             holder.mTv1.setText(dataBean.getId() + "");
-            holder.mTv2.setText(dataBean.getCarTypeName());
-            holder.mTv3.setText(dataBean.getPrice() + "");
+            holder.mTv2.setText(dataBean.getCarType());
+            holder.mTv3.setText(dataBean.getGold() + "");
             holder.mTv4.setText(dataBean.getNum() + "");
             holder.mTv5.setText(dataBean.getTimeStr() + "");
             return convertView;

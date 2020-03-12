@@ -1,2 +1,5 @@
 rootProject.name='itemPool'
 include ':atopic01', ':basic'
+include ':atopic02'
+include ':atopic03'
+include ':atopic04'
