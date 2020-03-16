@@ -8,12 +8,6 @@ import java.util.List;
 public class UserPeople {
 
 
-    /**
-     * status : 200
-     * message : SUCCESS
-     * data : [{"id":4197,"userFactoryId":1,"hp":86,"personId":8,"userLineId":2538,"person":{"id":8,"personName":"周正发","icon":null,"type":3,"hrmId":1,"price":4000,"power":100,"content":"汽车质检员","lastUpdateTime":1568008092}},{"id":4196,"userFactoryId":1,"hp":86,"personId":2,"userLineId":2538,"person":{"id":2,"personName":"丁运生","icon":null,"type":1,"hrmId":1,"price":500,"power":100,"content":"汽车厂工人","lastUpdateTime":1566182411}},{"id":4195,"userFactoryId":1,"hp":12,"personId":23,"userLineId":2538,"person":{"id":23,"personName":"David","icon":null,"type":2,"hrmId":1,"price":3500,"power":100,"content":"汽车工厂技术人员","lastUpdateTime":1568008596}},{"id":4194,"userFactoryId":1,"hp":72,"personId":25,"userLineId":2538,"person":{"id":25,"personName":"邓宁","icon":null,"type":0,"hrmId":1,"price":1500,"power":100,"content":"汽车工程师","lastUpdateTime":1568008656}}]
-     */
-
     private int status;
     private String message;
     private List<DataBean> data;

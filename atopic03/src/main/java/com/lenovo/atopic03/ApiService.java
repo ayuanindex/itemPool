@@ -16,6 +16,4 @@ public interface ApiService {
     //查询全部供货列表
     @POST("dataInterface/SuppierList/getAll")
     Observable<SuppierList> getAllSuppierList();
-
-
 }

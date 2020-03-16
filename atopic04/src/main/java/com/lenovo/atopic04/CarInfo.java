@@ -5,12 +5,6 @@ import java.util.List;
 public class CarInfo {
 
 
-    /**
-     * status : 200
-     * message : SUCCESS
-     * data : [{"id":1,"carName":"轿车汽车","content":"轿车汽车标准型"},{"id":2,"carName":"MPV汽车","content":"MPV汽车标准型"},{"id":3,"carName":"SUV汽车","content":"SUV汽车标准型"}]
-     */
-
     private int status;
     private String message;
     private List<DataBean> data;

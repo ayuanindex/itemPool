@@ -8,11 +8,6 @@ import java.util.List;
 public class Suppier {
 
 
-    /**
-     * status : 200
-     * message : SUCCESS
-     * data : [{"id":1,"suppierName":"新星汽车配件","content":"新星汽车配件供货商"},{"id":2,"suppierName":"枫叶汽车配件","content":"枫叶汽车配件供货商"},{"id":5,"suppierName":"天辉汽车配件","content":"天辉汽车配件供货商"},{"id":6,"suppierName":"细末汽车配件","content":"细末汽车配件供货商"}]
-     */
 
     private int status;
     private String message;

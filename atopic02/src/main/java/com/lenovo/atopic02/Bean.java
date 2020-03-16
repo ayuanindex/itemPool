@@ -4,11 +4,7 @@ import java.util.List;
 
 public class Bean {
 
-    /**
-     * status : 200
-     * message : SUCCESS
-     * data : [{"id":1,"passRateName":"轿车汽车维修","content":"轿车汽车维修","carId":1,"rate":80,"costTime":2},{"id":2,"passRateName":"MPV汽车维修","content":"MPV汽车维修","carId":2,"rate":70,"costTime":3},{"id":3,"passRateName":"SUV汽车维修","content":"SUV汽车维修","carId":3,"rate":60,"costTime":3}]
-     */
+
 
     private int status;
     private String message;

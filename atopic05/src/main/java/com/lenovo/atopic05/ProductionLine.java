@@ -5,11 +5,7 @@ import java.util.List;
  * 全部生产线
  */
 public class ProductionLine {
-    /**
-     * status : 200
-     * message : SUCCESS
-     * data : [{"id":1,"productionLineName":"轿车车型生产线","content":"生产轿车汽车","carId":1},{"id":2,"productionLineName":"MPV车型生产线","content":"生产MPV汽车","carId":2},{"id":3,"productionLineName":"SUV车型生产线","content":"生产SUV汽车","carId":3}]
-     */
+
 
     private int status;
     private String message;

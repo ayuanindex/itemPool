@@ -20,9 +20,4 @@ public interface ApiService {
     //查询全部原材料
     @POST("dataInterface/Part/getAll")
     Observable<Part> getAllPart();
-
-
-
-
-
 }

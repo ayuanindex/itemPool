@@ -71,8 +71,6 @@ public class MainActivity extends BaseActivity {
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(this.bindToLifecycle())
                 .subscribe(dataBeans -> mLv.setAdapter(adapter = new MyAdapter(dataBeans)), Throwable::printStackTrace);
-
-
     }
 
 
@@ -119,7 +117,7 @@ public class MainActivity extends BaseActivity {
             plStepCost.DataBean dataBean = dataBeans.get(position);
             holder.mTv1.setText(dataBean.getId() + "");
             holder.mTv2.setText(pLStepMap.get(dataBean.getPlStepId()).getPlStepName());
-            holder.mTv3.setText(pLStepMap.get(dataBean.getPlStepId()).getConsume()+"");
+            holder.mTv3.setText(pLStepMap.get(dataBean.getPlStepId()).getConsume() + "");
             holder.mTv4.setText(partMap.get(dataBean.getPartId()).getPartName());
             holder.mTv5.setText(dataBean.getNum() + "");
             return convertView;

@@ -4,13 +4,6 @@ import java.util.List;
 
 public class UserProductionLine {
 
-
-    /**
-     * status : 200
-     * message : SUCCESS
-     * data : [{"id":2538,"userWorkId":1,"stageId":32,"productionLineId":1,"type":0,"position":0,"isAI":1}]
-     */
-
     private int status;
     private String message;
     private List<DataBean> data;
