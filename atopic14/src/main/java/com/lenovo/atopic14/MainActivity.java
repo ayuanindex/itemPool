@@ -49,6 +49,7 @@ public class MainActivity extends BaseActivity {
     }
 
     @Override
+    @SuppressWarnings("CheckResult")
     protected void initEvent() {
         //跳转到卖出日志界面
         mBtnSaleLog.setOnClickListener(v -> startActivity(new Intent(this, LogActivity.class)));
