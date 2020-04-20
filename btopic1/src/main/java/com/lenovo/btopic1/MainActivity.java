@@ -1,5 +1,6 @@
 package com.lenovo.btopic1;
 
+import android.util.Log;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -49,7 +50,13 @@ public class MainActivity extends BaseFragmentActivity {
 
             @Override
             public void onPageSelected(int position) {
-
+                for (TextView textView : textViews) {
+                    if (textView.equals(textViews.get(position))) {
+                        textView.setBackgroundResource(R.drawable.xml_cycle_white);
+                    } else {
+                        textView.setBackgroundResource(R.drawable.xml_cycle_black);
+                    }
+                }
             }
 
             @Override
