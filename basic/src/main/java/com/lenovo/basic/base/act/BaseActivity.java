@@ -6,19 +6,15 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.view.Window;
 import android.widget.EditText;
 import android.widget.Toast;
 
-
 import androidx.annotation.LayoutRes;
-
 import androidx.fragment.app.Fragment;
 
 import com.lenovo.basic.R;
 import com.lenovo.basic.base.frag.BaseFragment;
-
 import com.lenovo.basic.utils.Network;
 import com.trello.rxlifecycle3.components.support.RxAppCompatActivity;
 
@@ -76,8 +72,9 @@ public abstract class BaseActivity extends RxAppCompatActivity {
             }
         });
         Window window = dialog.getWindow();
-        if (window != null)
+        if (window != null) {
             window.setBackgroundDrawableResource(android.R.color.transparent);
+        }
     }
 
 
@@ -130,8 +127,8 @@ public abstract class BaseActivity extends RxAppCompatActivity {
     /**
      * 跳转Activity,并选择是否将当前Activity关闭
      *
-     * @param intent
-     * @param b
+     * @param intent 需要跳转的intent
+     * @param b      是否要销毁当前界面的标示符，true标示销
      */
     public void startActivity(Intent intent, boolean b) {
         startActivity(intent);
