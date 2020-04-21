@@ -1,6 +1,7 @@
 package com.lenovo.btopic1.fragment;
 
 import android.annotation.SuppressLint;
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.util.Log;
@@ -15,6 +16,7 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
 
@@ -31,6 +33,7 @@ import com.lenovo.btopic1.bean.StatusBean;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -282,8 +285,9 @@ public class DetailFragment extends BaseFragment {
     @SuppressLint("SetTextI18n")
     private void showPeopleDialog(PeopleBean.DataBean item) {
         AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
+        AlertDialog alertDialog = builder.create();
         View inflate = View.inflate(mActivity, R.layout.dialog_peopledetail, null);
-        builder.setView(inflate);
+        alertDialog.setView(inflate);
         ViewHolder viewHolder = new ViewHolder(inflate);
         viewHolder.ivIcon.setImageResource(R.drawable.pic_icon);
         viewHolder.tvName.setText(item.getPeopleName());
@@ -314,7 +318,9 @@ public class DetailFragment extends BaseFragment {
         int width = viewHolder.rlParent.getLayoutParams().width;
         cardViewLayoutParams.width = (int) (width * percentage);
         viewHolder.cardView.setLayoutParams(cardViewLayoutParams);
-        builder.show();
+
+        Objects.requireNonNull(alertDialog.getWindow()).setBackgroundDrawableResource(android.R.color.transparent);
+        alertDialog.show();
     }
 
     /**
