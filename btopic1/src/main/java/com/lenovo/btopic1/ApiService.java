@@ -1,5 +1,6 @@
 package com.lenovo.btopic1;
 
+import com.lenovo.btopic1.bean.CarsBean;
 import com.lenovo.btopic1.bean.LinePeopleBean;
 import com.lenovo.btopic1.bean.PeopleBean;
 import com.lenovo.btopic1.bean.ProductionLineBean;
@@ -52,4 +53,12 @@ public interface ApiService {
     @POST("dataInterface/UserPeople/search")
     @FormUrlEncoded
     Observable<LinePeopleBean> getLinePeople(@Field("userProductionLineId") int userProductionLineId);
+
+    /**
+     * 获取所有车辆成品仓库信息
+     *
+     * @return 返回人员数据RxJava的操作对象
+     */
+    @POST("Interface/index/getUserNormalCarStoreAll")
+    Observable<CarsBean> getCars();
 }

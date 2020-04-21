@@ -12,6 +12,7 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.lenovo.basic.base.act.BaseFragmentActivity;
 import com.lenovo.basic.utils.Network;
+import com.lenovo.btopic1.bean.CarsBean;
 import com.lenovo.btopic1.bean.PeopleBean;
 import com.lenovo.btopic1.fragment.DetailFragment;
 
@@ -33,6 +34,8 @@ public class MainActivity extends BaseFragmentActivity {
     private TextView tvFour;
     private ArrayList<TextView> textViews;
     private ArrayList<DetailFragment> detailFragments;
+    private ApiService remote;
+    private AlertDialog show;
 
     @Override
     protected int getLayoutIdRes() {
@@ -77,6 +80,8 @@ public class MainActivity extends BaseFragmentActivity {
     @SuppressLint({"CheckResult", "NewApi"})
     @Override
     protected void initData() {
+        remote = Network.remote(ApiService.class);
+
         // 初始化圆点
         textViews = new ArrayList<>(4);
         textViews.add(tvOne);
@@ -87,20 +92,54 @@ public class MainActivity extends BaseFragmentActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setView(R.layout.dialog_progress);
         builder.setTitle("初始化请稍后");
-        AlertDialog show = builder.show();
+        show = builder.show();
 
-        ApiService remote = Network.remote(ApiService.class);
+        // 获取所有车辆成品仓库信息
         remote.getAllPeople()
                 .compose(bindToLifecycle())
                 .subscribeOn(Schedulers.io())
                 .map(PeopleBean::getData)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe((List<PeopleBean.DataBean> dataBeans) -> {
-                    setViewPager(() -> dataBeans);
+                    getCars(dataBeans);
+                }, (Throwable throwable) -> {
+                    Log.d(TAG, "getCars: 获取成品长获取所有人员信息出现错误裤出现问题-----" + throwable.getMessage());
+                    show.dismiss();
+                }).isDisposed();
+    }
+
+    /**
+     * 获取所有车辆成品仓库信息
+     *
+     * @param dataBeans 待发送的数据
+     */
+    @SuppressLint("CheckResult")
+    private void getCars(List<PeopleBean.DataBean> dataBeans) {
+        remote.getCars()
+                .compose(bindToLifecycle())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((CarsBean carsBean) -> {
+                    setViewPager(new ResultData() {
+                        @Override
+                        public List<PeopleBean.DataBean> getResult() {
+                            return dataBeans;
+                        }
+
+                        @Override
+                        public List<CarsBean.DataBean> getCars(int lineId) {
+                            List<CarsBean.DataBean> beans = new ArrayList<>(0);
+                            for (CarsBean.DataBean datum : carsBean.getData()) {
+                                if (datum.getUserLineId() == lineId) {
+                                    beans.add(datum);
+                                }
+                            }
+                            return beans;
+                        }
+                    });
                     show.dismiss();
                 }, (Throwable throwable) -> {
-                    Log.d(TAG, "initData: " + throwable.getMessage());
-                    Log.d(TAG, "initData: 获取所有人员信息出现错误");
+                    Log.d(TAG, "getCars: 获取成品长裤出现问题-----" + throwable.getMessage());
                     show.dismiss();
                 }).isDisposed();
     }
@@ -136,11 +175,13 @@ public class MainActivity extends BaseFragmentActivity {
          * @return 返回所有人员信息集合
          */
         List<PeopleBean.DataBean> getResult();
-    }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
+        /**
+         * 获取指定生产线的成品车辆
+         *
+         * @param lineId 生产线ID
+         * @return 返回指定指定生产线的成品车辆集合
+         */
+        List<CarsBean.DataBean> getCars(int lineId);
     }
 }

@@ -120,7 +120,7 @@
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
-                            android:layout_weight="1"
+                            android:layout_weight="2"
                             android:gravity="center"
                             android:text="汽车类型"
                             android:textSize="20sp" />
@@ -128,7 +128,7 @@
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
-                            android:layout_weight="1"
+                            android:layout_weight="2"
                             android:gravity="center"
                             android:text="生产线"
                             android:textSize="20sp" />
@@ -144,7 +144,7 @@
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
-                            android:layout_weight="1"
+                            android:layout_weight="2"
                             android:gravity="center"
                             android:text="描述"
                             android:textSize="20sp" />
@@ -156,6 +156,16 @@
                     android:layout_height="match_parent"
                     android:layout_margin="4dp"
                     app:cardCornerRadius="20dp">
+
+                    <TextView
+                        android:id="@+id/tv_tip"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="暂无车辆数据"
+                        android:textColor="#2596E4"
+                        android:textSize="14sp"
+                        android:visibility="gone" />
 
                     <ListView
                         android:id="@+id/lv_list"

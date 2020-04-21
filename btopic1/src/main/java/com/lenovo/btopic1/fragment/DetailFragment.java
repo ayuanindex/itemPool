@@ -12,7 +12,6 @@ import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
@@ -23,6 +22,7 @@ import com.lenovo.basic.utils.Network;
 import com.lenovo.btopic1.ApiService;
 import com.lenovo.btopic1.MainActivity;
 import com.lenovo.btopic1.R;
+import com.lenovo.btopic1.bean.CarsBean;
 import com.lenovo.btopic1.bean.LinePeopleBean;
 import com.lenovo.btopic1.bean.PeopleBean;
 import com.lenovo.btopic1.bean.ProductionLineBean;
@@ -53,6 +53,9 @@ public class DetailFragment extends BaseFragment {
     private List<PeopleBean.DataBean> allPeopleList;
     private List<PeopleBean.DataBean> peoples;
     private CustomerGridAdapter customerGridAdapter;
+    private List<CarsBean.DataBean> cars;
+    private CustomerListAdapter customerListAdapter;
+    private View tvTip;
 
     public DetailFragment(int position, MainActivity.ResultData resultData) {
         this.position = position;
@@ -74,6 +77,7 @@ public class DetailFragment extends BaseFragment {
         gvStaff = view.findViewById(R.id.gv_staff);
         lvList = view.findViewById(R.id.lv_list);
         llContent = view.findViewById(R.id.ll_content);
+        tvTip = view.findViewById(R.id.tv_tip);
 
         initListener();
     }
@@ -101,7 +105,11 @@ public class DetailFragment extends BaseFragment {
         customerGridAdapter = new CustomerGridAdapter();
         gvStaff.setAdapter(customerGridAdapter);
 
-        // 1、获取生产线的信息
+        cars = new ArrayList<>();
+        customerListAdapter = new CustomerListAdapter();
+        lvList.setAdapter(customerListAdapter);
+
+        // 获取生产线的信息
         getProductionLine();
     }
 
@@ -125,6 +133,8 @@ public class DetailFragment extends BaseFragment {
                     Log.d(TAG, "getProductionLine: " + dataBean.toString());
                     // 将生产线信息展现到控件中
                     setInComponents(dataBean);
+                    // 获取成品车辆
+                    finishedVehicles(dataBean.getId());
                 }, (Throwable throwable) -> {
                     tvPageStatus.setVisibility(View.VISIBLE);
                     llContent.setVisibility(View.GONE);
@@ -195,6 +205,23 @@ public class DetailFragment extends BaseFragment {
 
         // 获取生产线人员信息
         getProductionLinePeople();
+    }
+
+    /**
+     * 成品车辆列表
+     *
+     * @param id 生产线ID
+     */
+    private void finishedVehicles(int id) {
+        this.cars = resultData.getCars(id);
+        if (cars.size() == 0) {
+            lvList.setVisibility(View.GONE);
+            tvTip.setVisibility(View.VISIBLE);
+        } else {
+            lvList.setVisibility(View.VISIBLE);
+            tvTip.setVisibility(View.GONE);
+            customerListAdapter.notifyDataSetChanged();
+        }
     }
 
     /**
@@ -336,7 +363,6 @@ public class DetailFragment extends BaseFragment {
     class CustomerGridAdapter extends BaseAdapter {
         private ImageView ivIcon;
         private TextView tvName;
-
         private TextView tvDes;
 
         @Override
@@ -374,6 +400,55 @@ public class DetailFragment extends BaseFragment {
             tvName = view.findViewById(R.id.tv_name);
             tvDes = view.findViewById(R.id.tv_des);
         }
-
     }
+
+    class CustomerListAdapter extends BaseAdapter {
+        private TextView tvId;
+        private TextView tvCarType;
+        private TextView tvProductionLine;
+        private TextView tvCount;
+        private TextView tvDes;
+
+        @Override
+        public int getCount() {
+            return cars.size();
+        }
+
+        @Override
+        public CarsBean.DataBean getItem(int position) {
+            return cars.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @SuppressLint("SetTextI18n")
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View view;
+            if (convertView == null) {
+                view = View.inflate(mActivity, R.layout.item_cars_list, null);
+            } else {
+                view = convertView;
+            }
+            initView(view);
+            tvId.setText(getItem(position).getId() + "");
+            tvCarType.setText(getItem(position).getCarType().getCarTypeName());
+            tvProductionLine.setText(tvLineName.getText().toString().trim());
+            tvCount.setText(getItem(position).getNum() + "");
+            tvDes.setText(getItem(position).getCarType().getContent());
+            return view;
+        }
+
+        private void initView(View view) {
+            tvId = view.findViewById(R.id.tv_id);
+            tvCarType = view.findViewById(R.id.tv_carType);
+            tvProductionLine = view.findViewById(R.id.tv_productionLine);
+            tvCount = view.findViewById(R.id.tv_count);
+            tvDes = view.findViewById(R.id.tv_des);
+        }
+    }
+
 }
