@@ -2,19 +2,21 @@ package com.lenovo.btopic1.fragment;
 
 import android.annotation.SuppressLint;
 import android.content.DialogInterface;
-import android.database.DefaultDatabaseErrorHandler;
 import android.graphics.Color;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
+import androidx.cardview.widget.CardView;
 
 import com.lenovo.basic.base.frag.BaseFragment;
 import com.lenovo.basic.utils.Network;
@@ -30,8 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
 /**
@@ -83,6 +83,11 @@ public class DetailFragment extends BaseFragment {
      */
     private void initListener() {
         tvPageStatus.setOnClickListener((View v) -> showDialog());
+
+        gvStaff.setOnItemClickListener((AdapterView<?> parent, View view, int position, long id) -> {
+            PeopleBean.DataBean item = customerGridAdapter.getItem(position);
+            showPeopleDialog(item);
+        });
     }
 
     @Override
@@ -241,6 +246,48 @@ public class DetailFragment extends BaseFragment {
     }
 
     /**
+     * 显示人员信心
+     *
+     * @param item
+     */
+    @SuppressLint("SetTextI18n")
+    private void showPeopleDialog(PeopleBean.DataBean item) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
+        View inflate = View.inflate(mActivity, R.layout.dialog_peopledetail, null);
+        builder.setView(inflate);
+        ViewHolder viewHolder = new ViewHolder(inflate);
+        viewHolder.ivIcon.setImageResource(R.drawable.pic_icon);
+        viewHolder.tvName.setText(item.getPeopleName());
+        viewHolder.tvSalary.setText("薪资：" + item.getGold());
+        viewHolder.tvStamina.setText("" + item.getHp());
+
+        String type = "";
+        switch (item.getStatus()) {
+            case 0:
+                type = "工程师";
+                break;
+            case 1:
+                type = "工人";
+                break;
+            case 2:
+                type = "技术人员";
+                break;
+            case 3:
+                type = "检测人员";
+                break;
+            default:
+                break;
+        }
+        viewHolder.tvType.setText(type);
+        // 酸楚百分比
+        float percentage = (item.getHp() / 100f);
+        ViewGroup.LayoutParams cardViewLayoutParams = viewHolder.cardView.getLayoutParams();
+        cardViewLayoutParams.width = (int) (200 * percentage);
+        viewHolder.cardView.setLayoutParams(cardViewLayoutParams);
+        builder.show();
+    }
+
+    /**
      * 创建生产线
      *
      * @param lineId 生产线类型
@@ -291,7 +338,7 @@ public class DetailFragment extends BaseFragment {
                 view = convertView;
             }
             initView(view);
-
+            ivIcon.setImageResource(R.drawable.pic_icon);
             tvName.setText(getItem(position).getPeopleName());
             tvDes.setText(getItem(position).getContent());
             return view;
@@ -304,4 +351,24 @@ public class DetailFragment extends BaseFragment {
         }
     }
 
+    public static
+    class ViewHolder {
+        public View rootView;
+        public ImageView ivIcon;
+        public TextView tvName;
+        public TextView tvType;
+        public TextView tvSalary;
+        public TextView tvStamina;
+        public CardView cardView;
+
+        public ViewHolder(View rootView) {
+            this.rootView = rootView;
+            this.ivIcon = rootView.findViewById(R.id.iv_icon);
+            this.tvName = rootView.findViewById(R.id.tv_name);
+            this.tvType = rootView.findViewById(R.id.tv_type);
+            this.tvSalary = rootView.findViewById(R.id.tv_salary);
+            this.cardView = rootView.findViewById(R.id.card);
+            this.tvStamina = rootView.findViewById(R.id.tv_stamina);
+        }
+    }
 }
