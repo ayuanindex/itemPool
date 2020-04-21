@@ -248,7 +248,7 @@ public class DetailFragment extends BaseFragment {
     /**
      * 显示人员信心
      *
-     * @param item
+     * @param item 选择的员工条目
      */
     @SuppressLint("SetTextI18n")
     private void showPeopleDialog(PeopleBean.DataBean item) {
@@ -288,6 +288,30 @@ public class DetailFragment extends BaseFragment {
     }
 
     /**
+     * dialog的ViewHodler
+     */
+    public static
+    class ViewHolder {
+        public View rootView;
+        public ImageView ivIcon;
+        public TextView tvName;
+        public TextView tvType;
+        public TextView tvSalary;
+        public TextView tvStamina;
+        public CardView cardView;
+
+        public ViewHolder(View rootView) {
+            this.rootView = rootView;
+            this.ivIcon = rootView.findViewById(R.id.iv_icon);
+            this.tvName = rootView.findViewById(R.id.tv_name);
+            this.tvType = rootView.findViewById(R.id.tv_type);
+            this.tvSalary = rootView.findViewById(R.id.tv_salary);
+            this.cardView = rootView.findViewById(R.id.card);
+            this.tvStamina = rootView.findViewById(R.id.tv_stamina);
+        }
+    }
+
+    /**
      * 创建生产线
      *
      * @param lineId 生产线类型
@@ -312,6 +336,7 @@ public class DetailFragment extends BaseFragment {
     class CustomerGridAdapter extends BaseAdapter {
         private ImageView ivIcon;
         private TextView tvName;
+
         private TextView tvDes;
 
         @Override
@@ -349,26 +374,6 @@ public class DetailFragment extends BaseFragment {
             tvName = view.findViewById(R.id.tv_name);
             tvDes = view.findViewById(R.id.tv_des);
         }
-    }
 
-    public static
-    class ViewHolder {
-        public View rootView;
-        public ImageView ivIcon;
-        public TextView tvName;
-        public TextView tvType;
-        public TextView tvSalary;
-        public TextView tvStamina;
-        public CardView cardView;
-
-        public ViewHolder(View rootView) {
-            this.rootView = rootView;
-            this.ivIcon = rootView.findViewById(R.id.iv_icon);
-            this.tvName = rootView.findViewById(R.id.tv_name);
-            this.tvType = rootView.findViewById(R.id.tv_type);
-            this.tvSalary = rootView.findViewById(R.id.tv_salary);
-            this.cardView = rootView.findViewById(R.id.card);
-            this.tvStamina = rootView.findViewById(R.id.tv_stamina);
-        }
     }
 }
