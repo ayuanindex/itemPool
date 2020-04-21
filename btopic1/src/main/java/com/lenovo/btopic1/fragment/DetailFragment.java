@@ -31,6 +31,7 @@ import com.lenovo.btopic1.bean.StatusBean;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
@@ -249,23 +250,23 @@ public class DetailFragment extends BaseFragment {
                 .subscribe((List<PeopleBean.DataBean> peoples) -> {
                     this.peoples = peoples;
                     customerGridAdapter.notifyDataSetChanged();
-                }, (Throwable throwable) -> {
-                    Log.d(TAG, "getProductionLinePeople: 获取生产线人员信息出现问题----------" + throwable.getMessage());
-                }).isDisposed();
+                }, (Throwable throwable) -> Log.d(TAG, "getProductionLinePeople: 获取生产线人员信息出现问题----------" + throwable.getMessage())).isDisposed();
     }
 
     /**
      * 弹出对话框创建生产线
      */
     private void showDialog() {
+        AtomicInteger check = new AtomicInteger();
         AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
         builder.setTitle("选择类型");
         CharSequence[] items = {"轿车车型生产线", "MPV车型生产线", "SUV车型生产线"};
         builder.setSingleChoiceItems(items, 0, (DialogInterface dialog, int which) -> {
-            addProductionLine(which + 1);
+            check.set(which);
             Log.d(TAG, "onClick:" + which);
         });
         builder.setPositiveButton("确定", (DialogInterface dialog, int which) -> {
+            addProductionLine(check.intValue() + 1);
             dialog.dismiss();
         });
 
@@ -359,9 +360,7 @@ public class DetailFragment extends BaseFragment {
                         // 创建成功冲洗获取当前位置的生产线
                         getProductionLine();
                     }
-                }, (Throwable throwable) -> {
-                    Log.d(TAG, "addProductionLine: 常见生产线出现问题---------" + throwable.getMessage());
-                }).isDisposed();
+                }, (Throwable throwable) -> Log.d(TAG, "addProductionLine: 常见生产线出现问题---------" + throwable.getMessage())).isDisposed();
     }
 
     class CustomerGridAdapter extends BaseAdapter {
