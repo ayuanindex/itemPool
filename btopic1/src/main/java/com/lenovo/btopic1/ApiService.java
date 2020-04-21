@@ -1,11 +1,19 @@
 package com.lenovo.btopic1;
 
+import com.lenovo.btopic1.bean.ProductionLineBean;
+
+import io.reactivex.Observable;
+import retrofit2.http.POST;
+
 /**
- * @ProjectName: itemPool
- * @Package: com.lenovo.btopic1
- * @ClassName: ApiService
- * @CreateDate: 2020/3/13 09:27
+ * @author ayuan
  */
 public interface ApiService {
-
+    /**
+     * 获取所有生产线信息
+     *
+     * @return 返回RxJava的中的一个对象
+     */
+    @POST("dataInterface/UserProductionLine/getAll")
+    Observable<ProductionLineBean> getAllProductionLine();
 }

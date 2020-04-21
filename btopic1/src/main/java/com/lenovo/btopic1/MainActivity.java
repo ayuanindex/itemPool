@@ -1,6 +1,6 @@
 package com.lenovo.btopic1;
 
-import android.util.Log;
+import android.annotation.SuppressLint;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -33,16 +33,16 @@ public class MainActivity extends BaseFragmentActivity {
 
     @Override
     protected void initView() {
-        vpPager = (ViewPager) findViewById(R.id.vp_pager);
-        tvOne = (TextView) findViewById(R.id.tv_one);
-        tvTwo = (TextView) findViewById(R.id.tv_two);
-        tvThree = (TextView) findViewById(R.id.tv_three);
-        tvFour = (TextView) findViewById(R.id.tv_four);
+        vpPager = findViewById(R.id.vp_pager);
+        tvOne = findViewById(R.id.tv_one);
+        tvTwo = findViewById(R.id.tv_two);
+        tvThree = findViewById(R.id.tv_three);
+        tvFour = findViewById(R.id.tv_four);
     }
 
     @Override
     protected void initEvent() {
-        vpPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+        vpPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
@@ -66,22 +66,24 @@ public class MainActivity extends BaseFragmentActivity {
         });
     }
 
+    @SuppressLint("CheckResult")
     @Override
     protected void initData() {
         // 初始化圆点
-        textViews = new ArrayList<>();
+        textViews = new ArrayList<>(4);
         textViews.add(tvOne);
         textViews.add(tvTwo);
         textViews.add(tvThree);
         textViews.add(tvFour);
 
         // 初始化fragment集合
-        detailFragments = new ArrayList<>();
+        detailFragments = new ArrayList<>(4);
         detailFragments.add(new DetailFragment());
         detailFragments.add(new DetailFragment());
         detailFragments.add(new DetailFragment());
         detailFragments.add(new DetailFragment());
 
+        vpPager.setOffscreenPageLimit(4);
 
         vpPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager(), FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
             @NonNull
