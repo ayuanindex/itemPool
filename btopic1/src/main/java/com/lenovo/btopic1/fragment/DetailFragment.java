@@ -12,6 +12,7 @@ import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
@@ -306,10 +307,11 @@ public class DetailFragment extends BaseFragment {
                 break;
         }
         viewHolder.tvType.setText(type);
-        // 酸楚百分比
+        // 算出百分比
         float percentage = (item.getHp() / 100f);
         ViewGroup.LayoutParams cardViewLayoutParams = viewHolder.cardView.getLayoutParams();
-        cardViewLayoutParams.width = (int) (200 * percentage);
+        int width = viewHolder.rlParent.getLayoutParams().width;
+        cardViewLayoutParams.width = (int) (width * percentage);
         viewHolder.cardView.setLayoutParams(cardViewLayoutParams);
         builder.show();
     }
@@ -326,6 +328,7 @@ public class DetailFragment extends BaseFragment {
         public TextView tvSalary;
         public TextView tvStamina;
         public CardView cardView;
+        public RelativeLayout rlParent;
 
         public ViewHolder(View rootView) {
             this.rootView = rootView;
@@ -335,6 +338,7 @@ public class DetailFragment extends BaseFragment {
             this.tvSalary = rootView.findViewById(R.id.tv_salary);
             this.cardView = rootView.findViewById(R.id.card);
             this.tvStamina = rootView.findViewById(R.id.tv_stamina);
+            this.rlParent = rootView.findViewById(R.id.rl_parent);
         }
     }
 

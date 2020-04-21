@@ -115,7 +115,7 @@
                             android:layout_weight="1"
                             android:gravity="center"
                             android:text="ID"
-                            android:textSize="20sp" />
+                            android:textSize="16sp" />
 
                         <TextView
                             android:layout_width="0dp"
@@ -123,7 +123,7 @@
                             android:layout_weight="2"
                             android:gravity="center"
                             android:text="汽车类型"
-                            android:textSize="20sp" />
+                            android:textSize="16sp" />
 
                         <TextView
                             android:layout_width="0dp"
@@ -131,7 +131,7 @@
                             android:layout_weight="2"
                             android:gravity="center"
                             android:text="生产线"
-                            android:textSize="20sp" />
+                            android:textSize="16sp" />
 
                         <TextView
                             android:layout_width="0dp"
@@ -139,7 +139,7 @@
                             android:layout_weight="1"
                             android:gravity="center"
                             android:text="数量"
-                            android:textSize="20sp" />
+                            android:textSize="16sp" />
 
                         <TextView
                             android:layout_width="0dp"
@@ -147,7 +147,7 @@
                             android:layout_weight="2"
                             android:gravity="center"
                             android:text="描述"
-                            android:textSize="20sp" />
+                            android:textSize="16sp" />
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 

@@ -18,7 +18,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:text="3511"
-            android:textSize="18sp" />
+            android:textSize="16sp" />
 
         <TextView
             android:id="@+id/tv_carType"
@@ -27,7 +27,7 @@
             android:layout_weight="2"
             android:gravity="center"
             android:text="3511"
-            android:textSize="18sp" />
+            android:textSize="16sp" />
 
         <TextView
             android:id="@+id/tv_productionLine"
@@ -36,7 +36,7 @@
             android:layout_weight="2"
             android:gravity="center"
             android:text="3511"
-            android:textSize="18sp" />
+            android:textSize="16sp" />
 
         <TextView
             android:id="@+id/tv_count"
@@ -45,7 +45,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:text="3511"
-            android:textSize="18sp" />
+            android:textSize="16sp" />
 
         <TextView
             android:id="@+id/tv_des"
@@ -54,6 +54,6 @@
             android:layout_weight="2"
             android:gravity="center"
             android:text="3511"
-            android:textSize="18sp" />
+            android:textSize="16sp" />
     </LinearLayout>
 </LinearLayout>
