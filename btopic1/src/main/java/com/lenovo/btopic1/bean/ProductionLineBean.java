@@ -10,7 +10,7 @@ public class ProductionLineBean {
     /**
      * status : 200
      * message : SUCCESS
-     * data : [{"id":2689,"userWorkId":1,"stageId":5,"productionLineId":2,"type":0,"position":3,"isAI":1},{"id":2688,"userWorkId":1,"stageId":25,"productionLineId":1,"type":0,"position":2,"isAI":0}]
+     * data : [{"id":2688,"userWorkId":1,"stageId":25,"productionLineId":1,"type":0,"position":2,"isAI":0}]
      */
 
     private int status;
@@ -43,13 +43,13 @@ public class ProductionLineBean {
 
     public static class DataBean {
         /**
-         * id : 2689
+         * id : 2688
          * userWorkId : 1
-         * stageId : 5
-         * productionLineId : 2
+         * stageId : 25
+         * productionLineId : 1
          * type : 0
-         * position : 3
-         * isAI : 1
+         * position : 2
+         * isAI : 0
          */
 
         private int id;

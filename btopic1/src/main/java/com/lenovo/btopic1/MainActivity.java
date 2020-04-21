@@ -78,10 +78,10 @@ public class MainActivity extends BaseFragmentActivity {
 
         // 初始化fragment集合
         detailFragments = new ArrayList<>(4);
-        detailFragments.add(new DetailFragment());
-        detailFragments.add(new DetailFragment());
-        detailFragments.add(new DetailFragment());
-        detailFragments.add(new DetailFragment());
+        detailFragments.add(new DetailFragment(0));
+        detailFragments.add(new DetailFragment(1));
+        detailFragments.add(new DetailFragment(2));
+        detailFragments.add(new DetailFragment(3));
 
         vpPager.setOffscreenPageLimit(4);
 

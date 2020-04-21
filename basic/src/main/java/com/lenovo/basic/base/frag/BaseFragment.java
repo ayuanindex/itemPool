@@ -15,11 +15,12 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.lenovo.basic.base.act.BaseFragmentActivity;
+import com.trello.rxlifecycle3.components.support.RxFragment;
 
 /**
  * 所有Fragment的基类，使用此Fragment必须依赖BaseFragmentActivity
  */
-public abstract class BaseFragment extends Fragment {
+public abstract class BaseFragment extends RxFragment {
     /**
      * Log标记
      */
