@@ -1,7 +1,6 @@
 package com.lenovo.btopic1.fragment;
 
 import android.annotation.SuppressLint;
-import android.app.Dialog;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.util.Log;
@@ -16,7 +15,6 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
 
@@ -253,7 +251,8 @@ public class DetailFragment extends BaseFragment {
                 .subscribe((List<PeopleBean.DataBean> peoples) -> {
                     this.peoples = peoples;
                     customerGridAdapter.notifyDataSetChanged();
-                }, (Throwable throwable) -> Log.d(TAG, "getProductionLinePeople: 获取生产线人员信息出现问题----------" + throwable.getMessage())).isDisposed();
+                }, (Throwable throwable) -> Log.d(TAG, "getProductionLinePeople: 获取生产线人员信息出现问题----------" + throwable.getMessage()))
+                .isDisposed();
     }
 
     /**
@@ -278,7 +277,7 @@ public class DetailFragment extends BaseFragment {
     }
 
     /**
-     * 显示人员信心
+     * 显示人员信息
      *
      * @param item 选择的员工条目
      */
@@ -366,7 +365,8 @@ public class DetailFragment extends BaseFragment {
                         // 创建成功冲洗获取当前位置的生产线
                         getProductionLine();
                     }
-                }, (Throwable throwable) -> Log.d(TAG, "addProductionLine: 常见生产线出现问题---------" + throwable.getMessage())).isDisposed();
+                }, (Throwable throwable) -> Log.d(TAG, "addProductionLine: 常见生产线出现问题---------" + throwable.getMessage()))
+                .isDisposed();
     }
 
     class CustomerGridAdapter extends BaseAdapter {

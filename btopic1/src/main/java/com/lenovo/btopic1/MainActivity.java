@@ -100,9 +100,7 @@ public class MainActivity extends BaseFragmentActivity {
                 .subscribeOn(Schedulers.io())
                 .map(PeopleBean::getData)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe((List<PeopleBean.DataBean> dataBeans) -> {
-                    getCars(dataBeans);
-                }, (Throwable throwable) -> {
+                .subscribe(this::getCars, (Throwable throwable) -> {
                     Log.d(TAG, "getCars: 获取成品长获取所有人员信息出现错误裤出现问题-----" + throwable.getMessage());
                     show.dismiss();
                 }).isDisposed();
@@ -168,6 +166,11 @@ public class MainActivity extends BaseFragmentActivity {
         });
     }
 
+    /**
+     * 通过调用此接口的方法可以获取到所有人员信息以及成平车辆信息
+     *
+     * @author ayuan
+     */
     public interface ResultData {
         /**
          * 获取所有人员信息
