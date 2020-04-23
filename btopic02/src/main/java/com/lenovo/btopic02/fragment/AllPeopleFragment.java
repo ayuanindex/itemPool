@@ -2,14 +2,19 @@ package com.lenovo.btopic02.fragment;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Point;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -22,14 +27,19 @@ import com.lenovo.basic.utils.Network;
 import com.lenovo.btopic02.ApiService;
 import com.lenovo.btopic02.MainActivity;
 import com.lenovo.btopic02.R;
+import com.lenovo.btopic02.bean.AddStudentStaffResult;
 import com.lenovo.btopic02.bean.AllPeopleBean;
 import com.lenovo.btopic02.bean.ProductionLineBean;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
 /**
@@ -42,7 +52,9 @@ public class AllPeopleFragment extends BaseFragment {
     private List<AllPeopleBean.DataBean> allPeople;
     private float width;
     private ApiService remote;
-    private ArrayList<ProductionLineBean> productionLineBeans;
+    private static ArrayList<ProductionLineBean> productionLineBeans;
+    private ArrayList<RadioButton> radioButtons;
+    private CustomerAdapter customerAdapter;
 
     public AllPeopleFragment(MainActivity.ResultData resultData) {
         this.resultData = resultData;
@@ -65,13 +77,12 @@ public class AllPeopleFragment extends BaseFragment {
 
         remote = Network.remote(ApiService.class);
 
-        productionLineBeans = new ArrayList<>();
-
-        Log.d(TAG, "init: " + productionLineBeans.toString());
+        productionLineBeans = new ArrayList<>(4);
+        radioButtons = new ArrayList<>();
 
         allPeople = resultData.getResultData();
 
-        CustomerAdapter customerAdapter = new CustomerAdapter();
+        customerAdapter = new CustomerAdapter();
         lvList.setAdapter(customerAdapter);
     }
 
@@ -113,9 +124,11 @@ public class AllPeopleFragment extends BaseFragment {
 
     /**
      * 选择生产线对话框
+     *
+     * @param item 人员
      */
     @SuppressLint("SetTextI18n")
-    private void showDialog() {
+    private void showDialog(AllPeopleBean.DataBean item) {
         AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
         AlertDialog alertDialog = builder.create();
         Objects.requireNonNull(alertDialog.getWindow()).setBackgroundDrawableResource(android.R.color.transparent);
@@ -124,21 +137,48 @@ public class AllPeopleFragment extends BaseFragment {
         ViewHolder viewHolder = new ViewHolder(inflate);
 
         // 给radioGroup添加子控件
-        for (ProductionLineBean productionLineBean : productionLineBeans) {
-            ProductionLineBean.DataBean dataBean = productionLineBean.getData().get(0);
+        for (int i = 0; i < productionLineBeans.size(); i++) {
+            ProductionLineBean.DataBean dataBean = productionLineBeans.get(i).getData().get(0);
             // 穿件RadioButton
             RadioButton child = new RadioButton(mActivity);
+            child.setId(i);
             // 设置控件显示的名称
             child.setText(viewHolder.getLineName(dataBean.getLineId()) + "——位置" + (dataBean.getPos() + 1));
             // 将控件设置进入RadioGroup，-1标示每次添加都是在最下面
-            viewHolder.radioGroup.addView(child, -1, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            viewHolder.radioGroup.addView(child, new RadioGroup.LayoutParams(RadioGroup.LayoutParams.WRAP_CONTENT, RadioGroup.LayoutParams.WRAP_CONTENT));
         }
 
         viewHolder.cardOk.setOnClickListener((View v) -> {
+            if (productionLineBeans.size() == 0) {
+                alertDialog.dismiss();
+                return;
+            }
+            // 显示加载中的状态
+            viewHolder.loading();
             // 获取当前选择的生产线类型
             int checkedRadioButtonId = viewHolder.radioGroup.getCheckedRadioButtonId();
             ProductionLineBean current = viewHolder.getCurrent(checkedRadioButtonId);
-            Log.d(TAG, "onClick: " + current.getData().get(0).getId());
+            ProductionLineBean.DataBean dataBean = current.getData().get(0);
+            addStudentStaff(item, dataBean.getId(), dataBean.getLineId(), addStudentStaffResult -> {
+                Log.d(TAG, "accept: " + addStudentStaffResult.toString());
+                item.setRecruitment(true);
+                // 显示成功的状态
+                viewHolder.success();
+                // 延时销毁对话框
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        customerAdapter.notifyDataSetChanged();
+                        alertDialog.dismiss();
+                    }
+                }, 1000);
+            }, (Throwable throwable) -> {
+                // 显示失败的状态
+                viewHolder.error();
+                // 延时销毁对话框
+                new Handler().postDelayed(alertDialog::dismiss, 1000);
+                Log.d(TAG, "accept: 添加学生员工出现错误-----" + throwable.getMessage());
+            });
         });
 
         viewHolder.cardCancel.setOnClickListener((View v) -> alertDialog.dismiss());
@@ -147,21 +187,51 @@ public class AllPeopleFragment extends BaseFragment {
         alertDialog.show();
     }
 
-    public class ViewHolder {
+    public static class ViewHolder {
+
         public View rootView;
         public RadioGroup radioGroup;
         public CardView cardOk;
         public CardView cardCancel;
+        public ProgressBar pbProgress;
+        public ImageView ivSuccess;
+        public ImageView ivError;
+        public LinearLayout llContent;
 
         public ViewHolder(View rootView) {
             this.rootView = rootView;
             this.radioGroup = (RadioGroup) rootView.findViewById(R.id.radio_group);
             this.cardOk = (CardView) rootView.findViewById(R.id.card_ok);
             this.cardCancel = (CardView) rootView.findViewById(R.id.card_cancel);
+            this.pbProgress = (ProgressBar) rootView.findViewById(R.id.pb_progress);
+            this.ivSuccess = (ImageView) rootView.findViewById(R.id.iv_success);
+            this.ivError = (ImageView) rootView.findViewById(R.id.iv_error);
+            this.llContent = (LinearLayout) rootView.findViewById(R.id.ll_content);
+        }
+
+        private void success() {
+            this.llContent.setVisibility(View.GONE);
+            this.pbProgress.setVisibility(View.GONE);
+            this.ivSuccess.setVisibility(View.VISIBLE);
+            this.ivError.setVisibility(View.GONE);
+        }
+
+        private void loading() {
+            this.llContent.setVisibility(View.GONE);
+            this.pbProgress.setVisibility(View.VISIBLE);
+            this.ivSuccess.setVisibility(View.GONE);
+            this.ivError.setVisibility(View.GONE);
+        }
+
+        private void error() {
+            this.llContent.setVisibility(View.GONE);
+            this.pbProgress.setVisibility(View.GONE);
+            this.ivSuccess.setVisibility(View.GONE);
+            this.ivError.setVisibility(View.GONE);
         }
 
         private ProductionLineBean getCurrent(int index) {
-            return productionLineBeans.get(index - 1);
+            return productionLineBeans.get(index);
         }
 
         /**
@@ -173,15 +243,42 @@ public class AllPeopleFragment extends BaseFragment {
         private String getLineName(int lineId) {
             return lineId == 1 ? "轿车车型生产线" : lineId == 2 ? "MPV车型生产线" : "SUV车型生产线";
         }
+
+    }
+
+    /**
+     * 新增学生员工
+     *
+     * @param item              需要添加的学生员工对象
+     * @param productionLineId  生产线ID
+     * @param lineId            生产线类型ID
+     * @param onNext            订阅成功的回调
+     * @param throwableConsumer
+     */
+    private void addStudentStaff(AllPeopleBean.DataBean item, int productionLineId, int lineId, Consumer<AddStudentStaffResult> onNext, Consumer<Throwable> throwableConsumer) {
+        // 当前人员的工作类型
+        int status = item.getStatus();
+        HashMap<String, Object> hashMap = new HashMap<>();
+        hashMap.put("userWorkId", 1);
+        hashMap.put("power", item.getHp());
+        hashMap.put("peopleId", item.getId());
+        hashMap.put("userProductionLineId", productionLineId);
+        hashMap.put("workPostId", ((status + 1) + ((lineId - 1) * 4)));
+        remote.addStudentStaff(hashMap).compose(bindToLifecycle())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(onNext, throwableConsumer)
+                .isDisposed();
     }
 
     class CustomerAdapter extends BaseAdapter {
+
         private TextView tvName;
         private TextView tvSalary;
         private TextView tvPower;
         private TextView tvDes;
+        private TextView tvStatus;
         private CardView cardRecruitment;
-
         private CardView cardChild;
 
         @Override
@@ -213,13 +310,26 @@ public class AllPeopleFragment extends BaseFragment {
             tvPower.setText(String.valueOf(getItem(position).getHp()));
             tvDes.setText(getItem(position).getContent());
 
+            if (getItem(position).isRecruitment()) {
+                cardRecruitment.setCardBackgroundColor(Color.LTGRAY);
+                cardRecruitment.setEnabled(false);
+                tvStatus.setText("已招聘");
+            } else {
+                cardRecruitment.setCardBackgroundColor(Color.WHITE);
+                cardRecruitment.setEnabled(true);
+                tvStatus.setText("招聘");
+            }
+
             // 通过体力值设置进度条的进度
             float v = getItem(position).getHp() / 100f;
             ViewGroup.LayoutParams layoutParams = cardChild.getLayoutParams();
             layoutParams.width = (int) (v * width);
             cardChild.setLayoutParams(layoutParams);
 
-            cardRecruitment.setOnClickListener((View v1) -> getProductionLine(AllPeopleFragment.this::showDialog, 0));
+            cardRecruitment.setOnClickListener((View v1) -> {
+                productionLineBeans.clear();
+                getProductionLine(() -> showDialog(CustomerAdapter.this.getItem(position)), 0);
+            });
             return view;
         }
 
@@ -228,6 +338,7 @@ public class AllPeopleFragment extends BaseFragment {
             tvSalary = view.findViewById(R.id.tv_salary);
             tvPower = view.findViewById(R.id.tv_power);
             tvDes = view.findViewById(R.id.tv_des);
+            tvStatus = view.findViewById(R.id.tv_status);
             cardRecruitment = view.findViewById(R.id.card_recruitment);
             cardChild = view.findViewById(R.id.card_child);
         }

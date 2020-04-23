@@ -61,6 +61,7 @@ public class AllPeopleBean {
         private int gold;
         private int hp;
         private String content;
+        private boolean recruitment = false;
 
         public int getId() {
             return id;
@@ -126,6 +127,14 @@ public class AllPeopleBean {
             this.content = content;
         }
 
+        public boolean isRecruitment() {
+            return recruitment;
+        }
+
+        public void setRecruitment(boolean recruitment) {
+            this.recruitment = recruitment;
+        }
+
         @Override
         public String toString() {
             return "DataBean{" +
@@ -137,6 +146,7 @@ public class AllPeopleBean {
                     ", gold=" + gold +
                     ", hp=" + hp +
                     ", content='" + content + '\'' +
+                    ", recruitment=" + recruitment +
                     '}';
         }
     }
