@@ -78,6 +78,7 @@ public class MainActivity extends BaseFragmentActivity {
         simpleBeans.add(new SimpleBean("工人", new ArrayList<>()));
         simpleBeans.add(new SimpleBean("技术人员", new ArrayList<>()));
         simpleBeans.add(new SimpleBean("质检员", new ArrayList<>()));
+
         // 填充集合数据
         customerAdapter = new CustomerAdapter();
         elList.setAdapter(customerAdapter);
@@ -96,9 +97,6 @@ public class MainActivity extends BaseFragmentActivity {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe((List<AllPeopleBean.DataBean> dataBeans) -> {
                     allPeopleBeans = dataBeans;
-
-                    /* allPeopleFragment = new AllPeopleFragment(() -> allPeopleBeans);*/
-
                     // 获取所有学生员工信息
                     getAllStudentStaff();
                 }, (Throwable throwable) -> Log.d(TAG, "getAllPeople: 获取所有人员信息出现问题----------" + throwable.getMessage()))

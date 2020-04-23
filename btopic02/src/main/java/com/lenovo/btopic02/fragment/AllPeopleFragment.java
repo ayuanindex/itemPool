@@ -33,8 +33,6 @@ import com.lenovo.btopic02.bean.ProductionLineBean;
 import com.lenovo.btopic02.bean.SimpleBean;
 import com.lenovo.btopic02.bean.StudentStaffBean;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,9 +53,7 @@ public class AllPeopleFragment extends BaseFragment {
     private float width;
     private ApiService remote;
     private static ArrayList<ProductionLineBean> productionLineBeans;
-    private ArrayList<RadioButton> radioButtons;
     private CustomerAdapter customerAdapter;
-    private ArrayList<SimpleBean> allStudent;
 
     public AllPeopleFragment(MainActivity.ResultData resultData) {
         this.resultData = resultData;
@@ -81,10 +77,9 @@ public class AllPeopleFragment extends BaseFragment {
         remote = Network.remote(ApiService.class);
 
         productionLineBeans = new ArrayList<>(4);
-        radioButtons = new ArrayList<>();
 
         allPeople = resultData.getResultData();
-        allStudent = resultData.getAllStudent();
+        ArrayList<SimpleBean> allStudent = resultData.getAllStudent();
 
         for (SimpleBean simpleBean : allStudent) {
             for (StudentStaffBean.DataBean dataBean : simpleBean.getDataBeans()) {
@@ -179,12 +174,9 @@ public class AllPeopleFragment extends BaseFragment {
                 // 显示成功的状态
                 viewHolder.success();
                 // 延时销毁对话框
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        customerAdapter.notifyDataSetChanged();
-                        alertDialog.dismiss();
-                    }
+                new Handler().postDelayed(() -> {
+                    customerAdapter.notifyDataSetChanged();
+                    alertDialog.dismiss();
                 }, 1000);
             }, (Throwable throwable) -> {
                 // 显示失败的状态
@@ -267,12 +259,12 @@ public class AllPeopleFragment extends BaseFragment {
      * @param productionLineId  生产线ID
      * @param lineId            生产线类型ID
      * @param onNext            订阅成功的回调
-     * @param throwableConsumer
+     * @param throwableConsumer 异常信息
      */
     private void addStudentStaff(AllPeopleBean.DataBean item, int productionLineId, int lineId, Consumer<AddStudentStaffResult> onNext, Consumer<Throwable> throwableConsumer) {
         // 当前人员的工作类型
         int status = item.getStatus();
-        HashMap<String, Object> hashMap = new HashMap<>();
+        HashMap<String, Object> hashMap = new HashMap<>(5);
         hashMap.put("userWorkId", 1);
         hashMap.put("power", item.getHp());
         hashMap.put("peopleId", item.getId());
