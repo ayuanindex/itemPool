@@ -30,6 +30,8 @@ import com.lenovo.btopic02.R;
 import com.lenovo.btopic02.bean.AddStudentStaffResult;
 import com.lenovo.btopic02.bean.AllPeopleBean;
 import com.lenovo.btopic02.bean.ProductionLineBean;
+import com.lenovo.btopic02.bean.SimpleBean;
+import com.lenovo.btopic02.bean.StudentStaffBean;
 
 import org.w3c.dom.Text;
 
@@ -55,6 +57,7 @@ public class AllPeopleFragment extends BaseFragment {
     private static ArrayList<ProductionLineBean> productionLineBeans;
     private ArrayList<RadioButton> radioButtons;
     private CustomerAdapter customerAdapter;
+    private ArrayList<SimpleBean> allStudent;
 
     public AllPeopleFragment(MainActivity.ResultData resultData) {
         this.resultData = resultData;
@@ -81,6 +84,17 @@ public class AllPeopleFragment extends BaseFragment {
         radioButtons = new ArrayList<>();
 
         allPeople = resultData.getResultData();
+        allStudent = resultData.getAllStudent();
+
+        for (SimpleBean simpleBean : allStudent) {
+            for (StudentStaffBean.DataBean dataBean : simpleBean.getDataBeans()) {
+                for (AllPeopleBean.DataBean allPerson : allPeople) {
+                    if (allPerson.getId() == dataBean.getPeopleId()) {
+                        allPerson.setRecruitment(true);
+                    }
+                }
+            }
+        }
 
         customerAdapter = new CustomerAdapter();
         lvList.setAdapter(customerAdapter);

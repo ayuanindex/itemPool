@@ -7,7 +7,6 @@ import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.cardview.widget.CardView;
@@ -19,6 +18,7 @@ import com.lenovo.btopic02.bean.SimpleBean;
 import com.lenovo.btopic02.bean.StudentStaffBean;
 import com.lenovo.btopic02.fragment.AdFragment;
 import com.lenovo.btopic02.fragment.AllPeopleFragment;
+import com.lenovo.btopic02.fragment.DetailFragment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,13 +33,11 @@ import io.reactivex.schedulers.Schedulers;
 public class MainActivity extends BaseFragmentActivity {
     private CardView cardAddStudentStaff;
     private ExpandableListView elList;
-    private LinearLayout llReplace;
     private ApiService remote;
     private ArrayList<SimpleBean> simpleBeans;
     private CustomerAdapter customerAdapter;
     private List<AllPeopleBean.DataBean> allPeopleBeans;
     private AllPeopleFragment allPeopleFragment;
-    private ResultData resultData = null;
 
     @Override
     protected int getLayoutIdRes() {
@@ -50,26 +48,19 @@ public class MainActivity extends BaseFragmentActivity {
     protected void initView() {
         cardAddStudentStaff = findViewById(R.id.card_addStudentStaff);
         elList = findViewById(R.id.el_list);
-        llReplace = findViewById(R.id.ll_replace);
     }
 
     @Override
     protected void initEvent() {
-        cardAddStudentStaff.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (allPeopleBeans != null) {
-                    startFragmentWithReplace(R.id.ll_replace, allPeopleFragment);
-                }
+        cardAddStudentStaff.setOnClickListener(v -> {
+            if (allPeopleBeans != null) {
+                startFragmentWithReplace(R.id.ll_replace, allPeopleFragment);
             }
         });
 
-        elList.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
-            @Override
-            public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
-                Log.d(TAG, "onChildClick: hahha=--------------");
-                return true;
-            }
+        elList.setOnChildClickListener((ExpandableListView parent, View v, int groupPosition, int childPosition, long id) -> {
+            startFragmentWithReplace(R.id.ll_replace, new DetailFragment(customerAdapter.getChild(groupPosition, childPosition)));
+            return true;
         });
     }
 
@@ -106,18 +97,11 @@ public class MainActivity extends BaseFragmentActivity {
                 .subscribe((List<AllPeopleBean.DataBean> dataBeans) -> {
                     allPeopleBeans = dataBeans;
 
-                    allPeopleFragment = new AllPeopleFragment(new ResultData() {
-                        @Override
-                        public List<AllPeopleBean.DataBean> getResultData() {
-                            return allPeopleBeans;
-                        }
-                    });
+                    /* allPeopleFragment = new AllPeopleFragment(() -> allPeopleBeans);*/
 
                     // 获取所有学生员工信息
                     getAllStudentStaff();
-                }, (Throwable throwable) -> {
-                    Log.d(TAG, "getAllPeople: 获取所有人员信息出现问题----------" + throwable.getMessage());
-                })
+                }, (Throwable throwable) -> Log.d(TAG, "getAllPeople: 获取所有人员信息出现问题----------" + throwable.getMessage()))
                 .isDisposed();
     }
 
@@ -128,47 +112,53 @@ public class MainActivity extends BaseFragmentActivity {
         remote.getLineStudentStaff()
                 .compose(bindToLifecycle())
                 .subscribeOn(Schedulers.io())
-                .map(new Function<StudentStaffBean, List<SimpleBean>>() {
-                    @Override
-                    public List<SimpleBean> apply(StudentStaffBean studentStaffBean) throws Exception {
-                        List<StudentStaffBean.DataBean> data = studentStaffBean.getData();
-                        for (StudentStaffBean.DataBean datum : data) {
-                            if (TextUtils.isEmpty(datum.getWorkPostId())) {
-                                continue;
-                            }
-
-                            getType(datum);
+                .map((Function<StudentStaffBean, List<SimpleBean>>) studentStaffBean -> {
+                    List<StudentStaffBean.DataBean> data = studentStaffBean.getData();
+                    for (StudentStaffBean.DataBean datum : data) {
+                        if (TextUtils.isEmpty(datum.getWorkPostId())) {
+                            continue;
                         }
-                        return simpleBeans;
+                        getType(datum);
                     }
-
-                    /**
-                     * 获取同一的工作岗位数据并添加到simple数据模型集合中对应的集合
-                     * @param datum 需要分类的员工对象
-                     */
-                    private void getType(StudentStaffBean.DataBean datum) {
-                        int workPostId = Integer.parseInt(datum.getWorkPostId());
-                        int type = 0;
-                        if (workPostId >= 1 && workPostId <= 4) {
-                            type = workPostId - 1;
-                        } else if (workPostId >= 5 && workPostId <= 8) {
-                            type = workPostId - 5;
-                        } else if (workPostId >= 9 && workPostId <= 12) {
-                            type = workPostId - 9;
+                    allPeopleFragment = new AllPeopleFragment(new ResultData() {
+                        @Override
+                        public List<AllPeopleBean.DataBean> getResultData() {
+                            return allPeopleBeans;
                         }
 
-                        // 添加至集合
-                        simpleBeans.get(type).addStudentStaff(datum);
-                    }
+                        @Override
+                        public ArrayList<SimpleBean> getAllStudent() {
+                            return simpleBeans;
+                        }
+                    });
+                    return simpleBeans;
                 })
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe((List<SimpleBean> simpleBeans) -> {
-                    // 刷新集合¬
+                    // 刷新集合
                     customerAdapter.notifyDataSetChanged();
-                }, (Throwable throwable) -> {
-                    Log.d(TAG, "getAllStudentStaff: 获取所有生产线中的学生员工出现问题----------" + throwable.getMessage());
-                })
+                }, (Throwable throwable) -> Log.d(TAG, "getAllStudentStaff: 获取所有生产线中的学生员工出现问题----------" + throwable.getMessage()))
                 .isDisposed();
+    }
+
+    /**
+     * 获取同一的工作岗位数据并添加到simple数据模型集合中对应的集合
+     *
+     * @param datum 需要分类的员工对象
+     */
+    private void getType(StudentStaffBean.DataBean datum) {
+        int workPostId = Integer.parseInt(datum.getWorkPostId());
+        int type = 0;
+        if (workPostId >= 1 && workPostId <= 4) {
+            type = workPostId - 1;
+        } else if (workPostId >= 5 && workPostId <= 8) {
+            type = workPostId - 5;
+        } else if (workPostId >= 9 && workPostId <= 12) {
+            type = workPostId - 9;
+        }
+
+        // 添加至集合
+        simpleBeans.get(type).addStudentStaff(datum);
     }
 
     /**
@@ -285,8 +275,15 @@ public class MainActivity extends BaseFragmentActivity {
         /**
          * 获取全部人员
          *
-         * @return
+         * @return 返回全部人员对象集合
          */
         List<AllPeopleBean.DataBean> getResultData();
+
+        /**
+         * 获取已招聘人员信息
+         *
+         * @return 返回全部学生员工
+         */
+        ArrayList<SimpleBean> getAllStudent();
     }
 }
