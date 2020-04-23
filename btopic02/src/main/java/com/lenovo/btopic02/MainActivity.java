@@ -14,9 +14,11 @@ import androidx.cardview.widget.CardView;
 
 import com.lenovo.basic.base.act.BaseFragmentActivity;
 import com.lenovo.basic.utils.Network;
+import com.lenovo.btopic02.bean.AllPeopleBean;
 import com.lenovo.btopic02.bean.SimpleBean;
 import com.lenovo.btopic02.bean.StudentStaffBean;
 import com.lenovo.btopic02.fragment.AdFragment;
+import com.lenovo.btopic02.fragment.AllPeopleFragment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,12 +31,15 @@ import io.reactivex.schedulers.Schedulers;
  * @author ayuan
  */
 public class MainActivity extends BaseFragmentActivity {
-    private CardView card_addStudentStaff;
-    private ExpandableListView el_list;
-    private LinearLayout ll_replace;
+    private CardView cardAddStudentStaff;
+    private ExpandableListView elList;
+    private LinearLayout llReplace;
     private ApiService remote;
     private ArrayList<SimpleBean> simpleBeans;
     private CustomerAdapter customerAdapter;
+    private List<AllPeopleBean.DataBean> allPeopleBeans;
+    private AllPeopleFragment allPeopleFragment;
+    private ResultData resultData = null;
 
     @Override
     protected int getLayoutIdRes() {
@@ -43,17 +48,27 @@ public class MainActivity extends BaseFragmentActivity {
 
     @Override
     protected void initView() {
-        card_addStudentStaff = findViewById(R.id.card_addStudentStaff);
-        el_list = findViewById(R.id.el_list);
-        ll_replace = findViewById(R.id.ll_replace);
+        cardAddStudentStaff = findViewById(R.id.card_addStudentStaff);
+        elList = findViewById(R.id.el_list);
+        llReplace = findViewById(R.id.ll_replace);
     }
 
     @Override
     protected void initEvent() {
-        card_addStudentStaff.setOnClickListener(new View.OnClickListener() {
+        cardAddStudentStaff.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // TODO: 4/22/20 添加学生
+                if (allPeopleBeans != null) {
+                    startFragmentWithReplace(R.id.ll_replace, allPeopleFragment);
+                }
+            }
+        });
+
+        elList.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
+            @Override
+            public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
+                Log.d(TAG, "onChildClick: hahha=--------------");
+                return true;
             }
         });
     }
@@ -74,10 +89,36 @@ public class MainActivity extends BaseFragmentActivity {
         simpleBeans.add(new SimpleBean("质检员", new ArrayList<>()));
         // 填充集合数据
         customerAdapter = new CustomerAdapter();
-        el_list.setAdapter(customerAdapter);
+        elList.setAdapter(customerAdapter);
 
-        // 获取学生员工
-        getAllStudentStaff();
+        // 获取所有人员信息
+        getAllPeople();
+    }
+
+    /**
+     * 获取所有人员信息
+     */
+    private void getAllPeople() {
+        remote.getAllPeople().compose(bindToLifecycle())
+                .subscribeOn(Schedulers.io())
+                .map(AllPeopleBean::getData)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((List<AllPeopleBean.DataBean> dataBeans) -> {
+                    allPeopleBeans = dataBeans;
+
+                    allPeopleFragment = new AllPeopleFragment(new ResultData() {
+                        @Override
+                        public List<AllPeopleBean.DataBean> getResultData() {
+                            return allPeopleBeans;
+                        }
+                    });
+
+                    // 获取所有学生员工信息
+                    getAllStudentStaff();
+                }, (Throwable throwable) -> {
+                    Log.d(TAG, "getAllPeople: 获取所有人员信息出现问题----------" + throwable.getMessage());
+                })
+                .isDisposed();
     }
 
     /**
@@ -122,7 +163,7 @@ public class MainActivity extends BaseFragmentActivity {
                 })
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe((List<SimpleBean> simpleBeans) -> {
-                    // TODO: 4/22/20 填充集合
+                    // 刷新集合¬
                     customerAdapter.notifyDataSetChanged();
                 }, (Throwable throwable) -> {
                     Log.d(TAG, "getAllStudentStaff: 获取所有生产线中的学生员工出现问题----------" + throwable.getMessage());
@@ -199,12 +240,33 @@ public class MainActivity extends BaseFragmentActivity {
                 view = convertView;
             }
             initChildView(view);
+            AllPeopleBean.DataBean currentBean = getCurrentBean(getChild(groupPosition, childPosition).getPeopleId());
+            if (currentBean != null) {
+                ivIcon.setImageResource(R.drawable.pic_icon);
+                tvName.setText(currentBean.getPeopleName());
+                tvContent.setText(currentBean.getContent());
+            }
             return view;
+        }
+
+        /**
+         * 获取当前的对象
+         *
+         * @param peopleId 需要查找的学生人员ID
+         * @return 返回指定人员的对象
+         */
+        private AllPeopleBean.DataBean getCurrentBean(int peopleId) {
+            for (AllPeopleBean.DataBean allPeopleBean : allPeopleBeans) {
+                if (allPeopleBean.getId() == peopleId) {
+                    return allPeopleBean;
+                }
+            }
+            return null;
         }
 
         @Override
         public boolean isChildSelectable(int groupPosition, int childPosition) {
-            return false;
+            return true;
         }
 
         private void initGroupView(View view) {
@@ -217,5 +279,14 @@ public class MainActivity extends BaseFragmentActivity {
             tvName = (TextView) view.findViewById(R.id.tv_name);
             tvContent = (TextView) view.findViewById(R.id.tv_content);
         }
+    }
+
+    public interface ResultData {
+        /**
+         * 获取全部人员
+         *
+         * @return
+         */
+        List<AllPeopleBean.DataBean> getResultData();
     }
 }

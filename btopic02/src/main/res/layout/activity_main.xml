@@ -17,6 +17,7 @@
 
         <androidx.cardview.widget.CardView
             android:id="@+id/card_addStudentStaff"
+            style="@style/clickStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
@@ -38,17 +39,20 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:childDivider="@null"
-            android:groupIndicator="@null"
             android:divider="@null"
-            android:dividerHeight="10dp" />
+            android:groupIndicator="@null" />
     </LinearLayout>
+
+    <View
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:background="#CCCCCC" />
 
     <!--右边布局-->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="3"
-        android:background="#E1E0E0"
         android:orientation="vertical">
 
         <LinearLayout
