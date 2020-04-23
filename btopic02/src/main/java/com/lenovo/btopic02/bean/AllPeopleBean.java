@@ -62,6 +62,7 @@ public class AllPeopleBean {
         private int hp;
         private String content;
         private boolean recruitment = false;
+        private String lineType = "";
 
         public int getId() {
             return id;
@@ -133,6 +134,14 @@ public class AllPeopleBean {
 
         public void setRecruitment(boolean recruitment) {
             this.recruitment = recruitment;
+        }
+
+        public String getLineType() {
+            return lineType;
+        }
+
+        public void setLineType(String lineType) {
+            this.lineType = lineType;
         }
 
         @Override

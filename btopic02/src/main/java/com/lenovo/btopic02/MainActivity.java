@@ -1,5 +1,6 @@
 package com.lenovo.btopic02;
 
+import android.annotation.SuppressLint;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -59,7 +60,20 @@ public class MainActivity extends BaseFragmentActivity {
         });
 
         elList.setOnChildClickListener((ExpandableListView parent, View v, int groupPosition, int childPosition, long id) -> {
-            startFragmentWithReplace(R.id.ll_replace, new DetailFragment(customerAdapter.getChild(groupPosition, childPosition)));
+            if (allPeopleBeans.size() > 0) {
+                StudentStaffBean.DataBean child = customerAdapter.getChild(groupPosition, childPosition);
+                for (AllPeopleBean.DataBean allPeopleBean : allPeopleBeans) {
+                    if (allPeopleBean.getId() == child.getPeopleId()) {
+                        startFragmentWithReplace(R.id.ll_replace, new DetailFragment(child, allPeopleBean, new Refresh() {
+                            @Override
+                            public void update() {
+                                customerAdapter.notifyDataSetChanged();
+                            }
+                        }));
+                        break;
+                    }
+                }
+            }
             return true;
         });
     }
@@ -118,6 +132,7 @@ public class MainActivity extends BaseFragmentActivity {
                         }
                         getType(datum);
                     }
+
                     allPeopleFragment = new AllPeopleFragment(new ResultData() {
                         @Override
                         public List<AllPeopleBean.DataBean> getResultData() {
@@ -219,6 +234,7 @@ public class MainActivity extends BaseFragmentActivity {
             return view;
         }
 
+        @SuppressLint("SetTextI18n")
         @Override
         public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
             View view;
@@ -283,5 +299,9 @@ public class MainActivity extends BaseFragmentActivity {
          * @return 返回全部学生员工
          */
         ArrayList<SimpleBean> getAllStudent();
+    }
+
+    public interface Refresh {
+        void update();
     }
 }

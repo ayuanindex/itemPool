@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">btopic02</string>
+
+    <string-array name="productionLine">
+        <item>轿车车型生产线</item>
+        <item>MPV车型生产线</item>
+        <item>SUV车型生产线</item>
+    </string-array>
 </resources>
