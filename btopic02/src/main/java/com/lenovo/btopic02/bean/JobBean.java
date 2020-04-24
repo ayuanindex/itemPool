@@ -1,5 +1,7 @@
 package com.lenovo.btopic02.bean;
 
+import java.util.Objects;
+
 /**
  * @author ayuan
  */
@@ -26,6 +28,24 @@ public class JobBean {
 
     public void setWorkPostId(int workPostId) {
         this.workPostId = workPostId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        JobBean jobBean = (JobBean) o;
+        return workPostId == jobBean.workPostId &&
+                Objects.equals(jobName, jobBean.jobName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(jobName, workPostId);
     }
 
     @Override

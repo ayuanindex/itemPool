@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Point;
+import android.media.JetPlayer;
 import android.os.Handler;
 import android.util.Log;
 import android.view.Display;
@@ -41,6 +42,7 @@ import java.util.Objects;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
+import me.jessyan.retrofiturlmanager.RetrofitUrlManager;
 
 /**
  * @author ayuan
@@ -81,6 +83,7 @@ public class AllPeopleFragment extends BaseFragment {
         allPeople = resultData.getResultData();
         ArrayList<SimpleBean> allStudent = resultData.getAllStudent();
 
+        // 匹配已经存在的员工
         for (SimpleBean simpleBean : allStudent) {
             for (StudentStaffBean.DataBean dataBean : simpleBean.getDataBeans()) {
                 for (AllPeopleBean.DataBean allPerson : allPeople) {
@@ -155,7 +158,12 @@ public class AllPeopleFragment extends BaseFragment {
             child.setText(viewHolder.getLineName(dataBean.getLineId()) + "——位置" + (dataBean.getPos() + 1));
             // 将控件设置进入RadioGroup，-1标示每次添加都是在最下面
             viewHolder.radioGroup.addView(child, new RadioGroup.LayoutParams(RadioGroup.LayoutParams.WRAP_CONTENT, RadioGroup.LayoutParams.WRAP_CONTENT));
+            // 设置默认选中状态
+            if (i == 0) {
+                child.setChecked(true);
+            }
         }
+
 
         viewHolder.cardOk.setOnClickListener((View v) -> {
             if (productionLineBeans.size() == 0) {
@@ -166,6 +174,7 @@ public class AllPeopleFragment extends BaseFragment {
             viewHolder.loading();
             // 获取当前选择的生产线类型
             int checkedRadioButtonId = viewHolder.radioGroup.getCheckedRadioButtonId();
+            Log.d(TAG, "showDialog: " + checkedRadioButtonId);
             ProductionLineBean current = viewHolder.getCurrent(checkedRadioButtonId);
             ProductionLineBean.DataBean dataBean = current.getData().get(0);
             addStudentStaff(item, dataBean.getId(), dataBean.getLineId(), addStudentStaffResult -> {
@@ -238,7 +247,10 @@ public class AllPeopleFragment extends BaseFragment {
         }
 
         private ProductionLineBean getCurrent(int index) {
-            return productionLineBeans.get(index);
+            if (index >= 0) {
+                return productionLineBeans.get(index);
+            }
+            return null;
         }
 
         /**

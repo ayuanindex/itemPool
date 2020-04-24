@@ -66,11 +66,12 @@ public class MainActivity extends BaseFragmentActivity {
                     if (allPeopleBean.getId() == child.getPeopleId()) {
                         startFragmentWithReplace(R.id.ll_replace, new DetailFragment(child, allPeopleBean, new Refresh() {
                             @Override
-                            public void update(StudentStaffBean.DataBean child) {
-                                for (SimpleBean simpleBean : simpleBeans) {
+                            public void update() {
+                                getAllStudentStaff();
+                               /* for (SimpleBean simpleBean : simpleBeans) {
                                     simpleBean.getDataBeans().remove(child);
                                 }
-                                customerAdapter.notifyDataSetChanged();
+                                customerAdapter.notifyDataSetChanged();*/
                             }
                         }));
                         break;
@@ -140,9 +141,14 @@ public class MainActivity extends BaseFragmentActivity {
                         getType(datum);
                     }
 
+                    allPeopleFragment = null;
                     allPeopleFragment = new AllPeopleFragment(new ResultData() {
                         @Override
                         public List<AllPeopleBean.DataBean> getResultData() {
+                            // 重置所有员工的招聘状态为false
+                            for (AllPeopleBean.DataBean allPeopleBean : allPeopleBeans) {
+                                allPeopleBean.setRecruitment(false);
+                            }
                             return allPeopleBeans;
                         }
 
@@ -321,9 +327,7 @@ public class MainActivity extends BaseFragmentActivity {
     public interface Refresh {
         /**
          * 更新全部学生员工列表
-         *
-         * @param child 需要从列表中移除的员工
          */
-        void update(StudentStaffBean.DataBean child);
+        void update();
     }
 }
