@@ -64,16 +64,7 @@ public class MainActivity extends BaseFragmentActivity {
                 StudentStaffBean.DataBean child = customerAdapter.getChild(groupPosition, childPosition);
                 for (AllPeopleBean.DataBean allPeopleBean : allPeopleBeans) {
                     if (allPeopleBean.getId() == child.getPeopleId()) {
-                        startFragmentWithReplace(R.id.ll_replace, new DetailFragment(child, allPeopleBean, new Refresh() {
-                            @Override
-                            public void update() {
-                                getAllStudentStaff();
-                               /* for (SimpleBean simpleBean : simpleBeans) {
-                                    simpleBean.getDataBeans().remove(child);
-                                }
-                                customerAdapter.notifyDataSetChanged();*/
-                            }
-                        }));
+                        startFragmentWithReplace(R.id.ll_replace, new DetailFragment(child, allPeopleBean, this::getAllStudentStaff));
                         break;
                     }
                 }
@@ -297,9 +288,9 @@ public class MainActivity extends BaseFragmentActivity {
         }
 
         private void initChildView(View view) {
-            ivIcon = (ImageView) view.findViewById(R.id.iv_icon);
-            tvName = (TextView) view.findViewById(R.id.tv_name);
-            tvContent = (TextView) view.findViewById(R.id.tv_content);
+            ivIcon = view.findViewById(R.id.iv_icon);
+            tvName = view.findViewById(R.id.tv_name);
+            tvContent = view.findViewById(R.id.tv_content);
         }
     }
 

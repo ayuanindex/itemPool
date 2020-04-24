@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Point;
-import android.media.JetPlayer;
 import android.os.Handler;
 import android.util.Log;
 import android.view.Display;
@@ -42,7 +41,6 @@ import java.util.Objects;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
-import me.jessyan.retrofiturlmanager.RetrofitUrlManager;
 
 /**
  * @author ayuan
@@ -216,13 +214,13 @@ public class AllPeopleFragment extends BaseFragment {
 
         public ViewHolder(View rootView) {
             this.rootView = rootView;
-            this.radioGroup = (RadioGroup) rootView.findViewById(R.id.radio_group);
-            this.cardOk = (CardView) rootView.findViewById(R.id.card_ok);
-            this.cardCancel = (CardView) rootView.findViewById(R.id.card_cancel);
-            this.pbProgress = (ProgressBar) rootView.findViewById(R.id.pb_progress);
-            this.ivSuccess = (ImageView) rootView.findViewById(R.id.iv_success);
-            this.ivError = (ImageView) rootView.findViewById(R.id.iv_error);
-            this.llContent = (LinearLayout) rootView.findViewById(R.id.ll_content);
+            this.radioGroup = rootView.findViewById(R.id.radio_group);
+            this.cardOk = rootView.findViewById(R.id.card_ok);
+            this.cardCancel = rootView.findViewById(R.id.card_cancel);
+            this.pbProgress = rootView.findViewById(R.id.pb_progress);
+            this.ivSuccess = rootView.findViewById(R.id.iv_success);
+            this.ivError = rootView.findViewById(R.id.iv_error);
+            this.llContent = rootView.findViewById(R.id.ll_content);
         }
 
         private void success() {
@@ -247,10 +245,7 @@ public class AllPeopleFragment extends BaseFragment {
         }
 
         private ProductionLineBean getCurrent(int index) {
-            if (index >= 0) {
-                return productionLineBeans.get(index);
-            }
-            return null;
+            return productionLineBeans.get(index);
         }
 
         /**
