@@ -128,22 +128,8 @@ public class DetailFragment extends BaseFragment {
             public void onClick(View v) {
                 tvTextStatus.setVisibility(View.GONE);
                 pbProgress.setVisibility(View.VISIBLE);
-                deleteStudent(new Consumer<RemoveStudentResult>() {
-                    @Override
-                    public void accept(RemoveStudentResult removeStudentResult) throws Exception {
-                        Log.d(TAG, "accept: " + removeStudentResult.toString());
-                        pbProgress.setVisibility(View.GONE);
-                        tvTextStatus.setText("删除成功");
-                        tvTextStatus.setVisibility(View.VISIBLE);
-                        refresh.update(child);
-                        new Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                startFragmentWithReplace(R.id.ll_replace, new AdFragment());
-                            }
-                        }, 500);
-                    }
-                });
+                // 在线删除员工
+                deleteStudent();
             }
         });
     }
@@ -197,14 +183,27 @@ public class DetailFragment extends BaseFragment {
 
     /**
      * 删除学生员工
-     *
-     * @param removeStudentResultConsumer
      */
-    private void deleteStudent(Consumer<RemoveStudentResult> removeStudentResultConsumer) {
+    private void deleteStudent() {
         remote.removeStudent(child.getId()).compose(bindToLifecycle())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(removeStudentResultConsumer, (Throwable throwable) -> Log.d(TAG, "accept: 删除学生呢员工出现问题" + throwable.getMessage()))
+                .subscribe((RemoveStudentResult removeStudentResult) -> {
+                    Log.d(TAG, "accept: " + removeStudentResult.toString());
+
+                    pbProgress.setVisibility(View.GONE);
+                    tvTextStatus.setText("删除成功");
+                    tvTextStatus.setVisibility(View.VISIBLE);
+
+                    refresh.update(child);
+
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            startFragmentWithReplace(R.id.ll_replace, new AdFragment());
+                        }
+                    }, 500);
+                }, (Throwable throwable) -> Log.d(TAG, "accept: 删除学生呢员工出现问题" + throwable.getMessage()))
                 .isDisposed();
     }
 

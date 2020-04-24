@@ -319,6 +319,11 @@ public class MainActivity extends BaseFragmentActivity {
     }
 
     public interface Refresh {
+        /**
+         * 更新全部学生员工列表
+         *
+         * @param child 需要从列表中移除的员工
+         */
         void update(StudentStaffBean.DataBean child);
     }
 }
