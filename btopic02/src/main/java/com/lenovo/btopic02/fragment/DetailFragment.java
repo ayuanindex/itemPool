@@ -21,6 +21,7 @@ import com.lenovo.btopic02.MainActivity;
 import com.lenovo.btopic02.R;
 import com.lenovo.btopic02.bean.AllPeopleBean;
 import com.lenovo.btopic02.bean.ChangeLineResultBean;
+import com.lenovo.btopic02.bean.ChangeWorkResultBean;
 import com.lenovo.btopic02.bean.JobBean;
 import com.lenovo.btopic02.bean.ProductionLineBean;
 import com.lenovo.btopic02.bean.RemoveStudentResult;
@@ -54,6 +55,7 @@ public class DetailFragment extends BaseFragment {
     private int lineType = 0;
     private CustomerTypeAdapter customerTypeAdapter;
     private boolean isInit = true;
+    private boolean isSelect = false;
     private ApiService remote;
     private ArrayList<ProductionLineBean> productionLineBeans;
     private CustomerLineAdapter customerLineAdapter;
@@ -90,10 +92,27 @@ public class DetailFragment extends BaseFragment {
         spProductionLine.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                isSelect = false;
                 if (!isInit) {
                     setProductionLine(position);
                 }
                 isInit = false;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        spJobType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (isSelect) {
+                    // 修改员工的岗位
+                    changeWorkPost(child.getId(), customerTypeAdapter.getItem(position).getWorkPostId());
+                }
+                isSelect = true;
             }
 
             @Override
@@ -298,6 +317,39 @@ public class DetailFragment extends BaseFragment {
     }
 
     /**
+     * 修改员工的岗位
+     *
+     * @param id         员工ID
+     * @param workPostId 目标岗位
+     */
+    private void changeWorkPost(int id, int workPostId) {
+        remote.changeWork(id, workPostId).compose(bindToLifecycle())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<ChangeWorkResultBean>() {
+                    @Override
+                    public void accept(ChangeWorkResultBean changeWorkResultBean) throws Exception {
+                        refresh.update();
+                        for (JobBean jobBean : jobBeans) {
+                            if (jobBean.getWorkPostId() == workPostId) {
+                                jobBeans.remove(jobBean);
+                                break;
+                            }
+                        }
+                        customerTypeAdapter.notifyDataSetChanged();
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        // 重新返回所属工作岗位
+                        checkCurrentWork();
+                        Log.d(TAG, "accept: 修改岗位出现问题" + throwable.getMessage());
+                    }
+                })
+                .isDisposed();
+    }
+
+    /**
      * 设置岗位的JavaBean到集合中，每段代表一种类型的生产线
      *
      * @param item 员工当前的岗位
@@ -315,7 +367,10 @@ public class DetailFragment extends BaseFragment {
         }
 
         customerTypeAdapter.notifyDataSetChanged();
+        checkCurrentWork();
+    }
 
+    private void checkCurrentWork() {
         // 获取当前员工所属岗位
         int postId = Integer.parseInt(child.getWorkPostId());
         // 设置工作岗位类型默认选中

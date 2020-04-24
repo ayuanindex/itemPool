@@ -3,6 +3,7 @@ package com.lenovo.btopic02;
 import com.lenovo.btopic02.bean.AddStudentStaffResult;
 import com.lenovo.btopic02.bean.AllPeopleBean;
 import com.lenovo.btopic02.bean.ChangeLineResultBean;
+import com.lenovo.btopic02.bean.ChangeWorkResultBean;
 import com.lenovo.btopic02.bean.ProductionLineBean;
 import com.lenovo.btopic02.bean.RemoveStudentResult;
 import com.lenovo.btopic02.bean.StudentStaffBean;
@@ -75,4 +76,15 @@ public interface ApiService {
     @POST("dataInterface/UserPeople/delete")
     @FormUrlEncoded
     Observable<RemoveStudentResult> removeStudent(@Field("id") int id);
+
+    /**
+     * 修改员工当前工作岗位
+     *
+     * @param id         员工ID
+     * @param workPostId 目标岗位
+     * @return 返回可操作的RxJava对象
+     */
+    @POST("dataInterface/UserPeople/updateWorkPostId")
+    @FormUrlEncoded
+    Observable<ChangeWorkResultBean> changeWork(@Field("id") int id, @Field("workPostId") int workPostId);
 }
