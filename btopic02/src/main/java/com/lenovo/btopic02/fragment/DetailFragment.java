@@ -327,10 +327,12 @@ public class DetailFragment extends BaseFragment {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe((ChangeResultBean changeResultBean) -> {
                     refresh.update();
-                    for (JobBean jobBean : jobBeans) {
-                        if (jobBean.getWorkPostId() == workPostId) {
-                            jobBeans.remove(jobBean);
-                            break;
+                    if (jobBeans.size() > 4) {
+                        for (JobBean jobBean : jobBeans) {
+                            if (jobBean.getWorkPostId() == workPostId) {
+                                jobBeans.remove(jobBean);
+                                break;
+                            }
                         }
                     }
                     customerTypeAdapter.notifyDataSetChanged();
