@@ -326,25 +326,19 @@ public class DetailFragment extends BaseFragment {
         remote.changeWork(id, workPostId).compose(bindToLifecycle())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<ChangeWorkResultBean>() {
-                    @Override
-                    public void accept(ChangeWorkResultBean changeWorkResultBean) throws Exception {
-                        refresh.update();
-                        for (JobBean jobBean : jobBeans) {
-                            if (jobBean.getWorkPostId() == workPostId) {
-                                jobBeans.remove(jobBean);
-                                break;
-                            }
+                .subscribe((ChangeWorkResultBean changeWorkResultBean) -> {
+                    refresh.update();
+                    for (JobBean jobBean : jobBeans) {
+                        if (jobBean.getWorkPostId() == workPostId) {
+                            jobBeans.remove(jobBean);
+                            break;
                         }
-                        customerTypeAdapter.notifyDataSetChanged();
                     }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        // 重新返回所属工作岗位
-                        checkCurrentWork();
-                        Log.d(TAG, "accept: 修改岗位出现问题" + throwable.getMessage());
-                    }
+                    customerTypeAdapter.notifyDataSetChanged();
+                }, (Throwable throwable) -> {
+                    // 重新返回所属工作岗位
+                    checkCurrentWork();
+                    Log.d(TAG, "accept: 修改岗位出现问题" + throwable.getMessage());
                 })
                 .isDisposed();
     }
