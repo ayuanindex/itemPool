@@ -145,7 +145,7 @@ public class DetailFragment extends BaseFragment {
     }
 
     /**
-     * 获取同一的工作岗位数据并添加到simple数据模型集合中对应的集合
+     * 根据当前员工的岗位获取到对应具体岗位的名称
      *
      * @return 返回 岗位类型
      */
@@ -225,10 +225,15 @@ public class DetailFragment extends BaseFragment {
                 if (productionLineBeans.get(i).getData().get(0).getId() == child.getUserProductionLineId()) {
                     // 选择生产线spinner默认选中
                     spProductionLine.setSelection(i, true);
+
                     // 设置所属生产线类别
-                    setCurrentLineType(Integer.parseInt(child.getWorkPostId()));
+                    /*setCurrentLineType(Integer.parseInt(child.getWorkPostId()));*/
+
+                    // 获取当前员工所属生产线类型
+                    int lineId = productionLineBeans.get(i).getData().get(0).getLineId();
+
                     // 设置工作岗位的spinner
-                    setWorkPostType(new JobBean(getType(), Integer.parseInt(child.getWorkPostId())));
+                    setWorkPostType(new JobBean(getType(), Integer.parseInt(child.getWorkPostId())), lineId);
                     break;
                 }
             }
@@ -237,11 +242,12 @@ public class DetailFragment extends BaseFragment {
 
     /**
      * 设置工作岗位spinner
-     *  @param item     当前选择的工作岗位类型
      *
+     * @param item   当前选择的工作岗位类型
+     * @param lineId 当前生产线的类型
      */
-    private void setWorkPostType(JobBean item) {
-        switch (lineType) {
+    private void setWorkPostType(JobBean item, int lineId) {
+        switch (lineId) {
             case 1:
                 currentLineType = "轿车汽车";
                 setJobBeans(item, 1, 2, 3, 4);
@@ -272,7 +278,7 @@ public class DetailFragment extends BaseFragment {
             Log.d(TAG, "setProductionLine: " + item);
             // 清空之前的工作类型
             jobBeans.clear();
-            setWorkPostType(item);
+            setWorkPostType(item, lineType);
         });
     }
 
