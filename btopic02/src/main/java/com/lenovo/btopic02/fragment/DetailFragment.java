@@ -20,8 +20,7 @@ import com.lenovo.btopic02.ApiService;
 import com.lenovo.btopic02.MainActivity;
 import com.lenovo.btopic02.R;
 import com.lenovo.btopic02.bean.AllPeopleBean;
-import com.lenovo.btopic02.bean.ChangeLineResultBean;
-import com.lenovo.btopic02.bean.ChangeWorkResultBean;
+import com.lenovo.btopic02.bean.ChangeResultBean;
 import com.lenovo.btopic02.bean.JobBean;
 import com.lenovo.btopic02.bean.ProductionLineBean;
 import com.lenovo.btopic02.bean.RemoveStudentResult;
@@ -287,7 +286,7 @@ public class DetailFragment extends BaseFragment {
         // 获取选择后的生产线
         ProductionLineBean.DataBean dataBean = customerLineAdapter.getItem(position).getData().get(0);
         // 请求修改员工所处生产线
-        changeLine(child.getId(), dataBean.getId(), (ChangeLineResultBean changeLineResultBean) -> {
+        changeLine(child.getId(), dataBean.getId(), (ChangeResultBean changeResultBean) -> {
             // 更新左侧已有员工列表
             refresh.update();
             lineType = dataBean.getLineId();
@@ -308,7 +307,7 @@ public class DetailFragment extends BaseFragment {
      * @param userProductionLineId 目标生产线ID
      * @param onNext               请求成功的回调
      */
-    private void changeLine(int id, int userProductionLineId, Consumer<ChangeLineResultBean> onNext) {
+    private void changeLine(int id, int userProductionLineId, Consumer<ChangeResultBean> onNext) {
         remote.changeLine(id, userProductionLineId).compose(bindToLifecycle())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -326,7 +325,7 @@ public class DetailFragment extends BaseFragment {
         remote.changeWork(id, workPostId).compose(bindToLifecycle())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe((ChangeWorkResultBean changeWorkResultBean) -> {
+                .subscribe((ChangeResultBean changeResultBean) -> {
                     refresh.update();
                     for (JobBean jobBean : jobBeans) {
                         if (jobBean.getWorkPostId() == workPostId) {

@@ -2,8 +2,7 @@ package com.lenovo.btopic02;
 
 import com.lenovo.btopic02.bean.AddStudentStaffResult;
 import com.lenovo.btopic02.bean.AllPeopleBean;
-import com.lenovo.btopic02.bean.ChangeLineResultBean;
-import com.lenovo.btopic02.bean.ChangeWorkResultBean;
+import com.lenovo.btopic02.bean.ChangeResultBean;
 import com.lenovo.btopic02.bean.ProductionLineBean;
 import com.lenovo.btopic02.bean.RemoveStudentResult;
 import com.lenovo.btopic02.bean.StudentStaffBean;
@@ -65,7 +64,7 @@ public interface ApiService {
      */
     @POST("dataInterface/UserPeople/updateUserProductionLineId")
     @FormUrlEncoded
-    Observable<ChangeLineResultBean> changeLine(@Field("id") int id, @Field("userProductionLineId") int userProductionLineId);
+    Observable<ChangeResultBean> changeLine(@Field("id") int id, @Field("userProductionLineId") int userProductionLineId);
 
     /**
      * 删除学生员工
@@ -86,5 +85,5 @@ public interface ApiService {
      */
     @POST("dataInterface/UserPeople/updateWorkPostId")
     @FormUrlEncoded
-    Observable<ChangeWorkResultBean> changeWork(@Field("id") int id, @Field("workPostId") int workPostId);
+    Observable<ChangeResultBean> changeWork(@Field("id") int id, @Field("workPostId") int workPostId);
 }

@@ -3,7 +3,7 @@ package com.lenovo.btopic02.bean;
 /**
  * @author ayuan
  */
-public class ChangeLineResultBean {
+public class ChangeResultBean {
 
     /**
      * status : 200
