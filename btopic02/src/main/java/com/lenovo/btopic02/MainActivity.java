@@ -66,7 +66,10 @@ public class MainActivity extends BaseFragmentActivity {
                     if (allPeopleBean.getId() == child.getPeopleId()) {
                         startFragmentWithReplace(R.id.ll_replace, new DetailFragment(child, allPeopleBean, new Refresh() {
                             @Override
-                            public void update() {
+                            public void update(StudentStaffBean.DataBean child) {
+                                for (SimpleBean simpleBean : simpleBeans) {
+                                    simpleBean.getDataBeans().remove(child);
+                                }
                                 customerAdapter.notifyDataSetChanged();
                             }
                         }));
@@ -125,6 +128,10 @@ public class MainActivity extends BaseFragmentActivity {
                 .compose(bindToLifecycle())
                 .subscribeOn(Schedulers.io())
                 .map((Function<StudentStaffBean, List<SimpleBean>>) studentStaffBean -> {
+                    for (SimpleBean simpleBean : simpleBeans) {
+                        simpleBean.getDataBeans().clear();
+                    }
+
                     List<StudentStaffBean.DataBean> data = studentStaffBean.getData();
                     for (StudentStaffBean.DataBean datum : data) {
                         if (TextUtils.isEmpty(datum.getWorkPostId())) {
@@ -142,6 +149,11 @@ public class MainActivity extends BaseFragmentActivity {
                         @Override
                         public ArrayList<SimpleBean> getAllStudent() {
                             return simpleBeans;
+                        }
+
+                        @Override
+                        public void update() {
+                            getAllStudentStaff();
                         }
                     });
                     return simpleBeans;
@@ -299,9 +311,14 @@ public class MainActivity extends BaseFragmentActivity {
          * @return 返回全部学生员工
          */
         ArrayList<SimpleBean> getAllStudent();
+
+        /**
+         * 更新当前员工信息
+         */
+        void update();
     }
 
     public interface Refresh {
-        void update();
+        void update(StudentStaffBean.DataBean child);
     }
 }

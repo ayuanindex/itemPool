@@ -1,12 +1,14 @@
 package com.lenovo.btopic02.fragment;
 
 import android.annotation.SuppressLint;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -21,6 +23,7 @@ import com.lenovo.btopic02.bean.AllPeopleBean;
 import com.lenovo.btopic02.bean.ChangeLineResultBean;
 import com.lenovo.btopic02.bean.JobBean;
 import com.lenovo.btopic02.bean.ProductionLineBean;
+import com.lenovo.btopic02.bean.RemoveStudentResult;
 import com.lenovo.btopic02.bean.StudentStaffBean;
 
 import java.util.ArrayList;
@@ -45,6 +48,8 @@ public class DetailFragment extends BaseFragment {
     private Spinner spProductionLine;
     private Spinner spJobType;
     private CardView cardRemoveCurrent;
+    private ProgressBar pbProgress;
+    private TextView tvTextStatus;
     private static String currentLineType = "";
     private int lineId = 0;
     private ArrayList<String> jobs;
@@ -68,14 +73,16 @@ public class DetailFragment extends BaseFragment {
 
     @Override
     protected void initView(View view) {
-        tvName = (TextView) view.findViewById(R.id.tv_name);
-        ivIcon = (ImageView) view.findViewById(R.id.iv_icon);
-        spJobType = (Spinner) view.findViewById(R.id.sp_jobType);
-        tvContent = (TextView) view.findViewById(R.id.tv_content);
-        tvJobType = (TextView) view.findViewById(R.id.tv_jobType);
-        tvCurrentHp = (TextView) view.findViewById(R.id.tv_currentHp);
-        spProductionLine = (Spinner) view.findViewById(R.id.sp_productionLine);
-        cardRemoveCurrent = (CardView) view.findViewById(R.id.card_removeCurrent);
+        tvName = view.findViewById(R.id.tv_name);
+        ivIcon = view.findViewById(R.id.iv_icon);
+        spJobType = view.findViewById(R.id.sp_jobType);
+        tvContent = view.findViewById(R.id.tv_content);
+        tvJobType = view.findViewById(R.id.tv_jobType);
+        pbProgress = view.findViewById(R.id.pb_progress);
+        tvCurrentHp = view.findViewById(R.id.tv_currentHp);
+        tvTextStatus = view.findViewById(R.id.tv_textStatus);
+        spProductionLine = view.findViewById(R.id.sp_productionLine);
+        cardRemoveCurrent = view.findViewById(R.id.card_removeCurrent);
 
         initListener();
     }
@@ -119,7 +126,24 @@ public class DetailFragment extends BaseFragment {
         cardRemoveCurrent.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                tvTextStatus.setVisibility(View.GONE);
+                pbProgress.setVisibility(View.VISIBLE);
+                deleteStudent(new Consumer<RemoveStudentResult>() {
+                    @Override
+                    public void accept(RemoveStudentResult removeStudentResult) throws Exception {
+                        Log.d(TAG, "accept: " + removeStudentResult.toString());
+                        pbProgress.setVisibility(View.GONE);
+                        tvTextStatus.setText("删除成功");
+                        tvTextStatus.setVisibility(View.VISIBLE);
+                        refresh.update(child);
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                startFragmentWithReplace(R.id.ll_replace, new AdFragment());
+                            }
+                        }, 500);
+                    }
+                });
             }
         });
     }
@@ -168,6 +192,19 @@ public class DetailFragment extends BaseFragment {
                 }, (Throwable throwable) -> {
                     keepGoing(position);
                 })
+                .isDisposed();
+    }
+
+    /**
+     * 删除学生员工
+     *
+     * @param removeStudentResultConsumer
+     */
+    private void deleteStudent(Consumer<RemoveStudentResult> removeStudentResultConsumer) {
+        remote.removeStudent(child.getId()).compose(bindToLifecycle())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(removeStudentResultConsumer, (Throwable throwable) -> Log.d(TAG, "accept: 删除学生呢员工出现问题" + throwable.getMessage()))
                 .isDisposed();
     }
 
@@ -308,7 +345,7 @@ public class DetailFragment extends BaseFragment {
         }
 
         private void initView(View view) {
-            tvText = (TextView) view.findViewById(R.id.tv_text);
+            tvText = view.findViewById(R.id.tv_text);
         }
     }
 
@@ -346,7 +383,7 @@ public class DetailFragment extends BaseFragment {
         }
 
         private void initView(View view) {
-            tvText = (TextView) view.findViewById(R.id.tv_text);
+            tvText = view.findViewById(R.id.tv_text);
         }
     }
 }

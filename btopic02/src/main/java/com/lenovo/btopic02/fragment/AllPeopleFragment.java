@@ -175,6 +175,7 @@ public class AllPeopleFragment extends BaseFragment {
                 viewHolder.success();
                 // 延时销毁对话框
                 new Handler().postDelayed(() -> {
+                    resultData.update();
                     customerAdapter.notifyDataSetChanged();
                     alertDialog.dismiss();
                 }, 1000);
