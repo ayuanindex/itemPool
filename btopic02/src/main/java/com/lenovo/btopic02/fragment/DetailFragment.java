@@ -52,7 +52,6 @@ public class DetailFragment extends BaseFragment {
     private TextView tvTextStatus;
     private static String currentLineType = "";
     private int lineId = 0;
-    private ArrayList<String> jobs;
     private CustomerTypeAdapter customerTypeAdapter;
     private boolean isInit = true;
     private ApiService remote;
@@ -92,27 +91,7 @@ public class DetailFragment extends BaseFragment {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 if (!isInit) {
-                    ProductionLineBean.DataBean dataBean = customerLineAdapter.getItem(position).getData().get(0);
-                    // 请求修改员工所处生产线
-                    changeLine(child.getId(), dataBean.getId(), (ChangeLineResultBean changeLineResultBean) -> {
-                        lineId = dataBean.getLineId();
-                        switch (lineId) {
-                            case 1:
-                                currentLineType = "轿车汽车";
-                                setJobBeans(1, 2, 3, 4);
-                                break;
-                            case 2:
-                                currentLineType = "MPV汽车";
-                                setJobBeans(5, 6, 7, 8);
-                                break;
-                            case 3:
-                                currentLineType = "SUV汽车";
-                                setJobBeans(9, 10, 11, 12);
-                                break;
-                            default:
-                                break;
-                        }
-                    });
+                    setProductionLine(position);
                 }
                 isInit = false;
             }
@@ -123,14 +102,11 @@ public class DetailFragment extends BaseFragment {
             }
         });
 
-        cardRemoveCurrent.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                tvTextStatus.setVisibility(View.GONE);
-                pbProgress.setVisibility(View.VISIBLE);
-                // 在线删除员工
-                deleteStudent();
-            }
+        cardRemoveCurrent.setOnClickListener((View v) -> {
+            tvTextStatus.setVisibility(View.GONE);
+            pbProgress.setVisibility(View.VISIBLE);
+            // 在线删除员工
+            deleteStudent();
         });
     }
 
@@ -151,89 +127,6 @@ public class DetailFragment extends BaseFragment {
 
         // 找到当前已存在的生产线
         getProductionLine(0);
-    }
-
-    /**
-     * 修改员工所属生产线
-     *
-     * @param id                   需要修改的员工ID
-     * @param userProductionLineId 目标生产线ID
-     * @param onNext               请求成功的回调
-     */
-    private void changeLine(int id, int userProductionLineId, Consumer<ChangeLineResultBean> onNext) {
-        remote.changeLine(id, userProductionLineId).compose(bindToLifecycle())
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(onNext, throwable -> Log.d(TAG, "accept: 修改员工所属生产线出现问题-----" + throwable.getMessage()))
-                .isDisposed();
-    }
-
-    private void getProductionLine(int position) {
-        remote.getProductionLineByPosition(position).compose(bindToLifecycle())
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe((ProductionLineBean productionLineBean) -> {
-                    productionLineBeans.add(productionLineBean);
-                    keepGoing(position);
-                }, (Throwable throwable) -> {
-                    keepGoing(position);
-                })
-                .isDisposed();
-    }
-
-    /**
-     * 删除学生员工
-     */
-    private void deleteStudent() {
-        remote.removeStudent(child.getId()).compose(bindToLifecycle())
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe((RemoveStudentResult removeStudentResult) -> {
-                    Log.d(TAG, "accept: " + removeStudentResult.toString());
-
-                    pbProgress.setVisibility(View.GONE);
-                    tvTextStatus.setText("删除成功");
-                    tvTextStatus.setVisibility(View.VISIBLE);
-
-                    refresh.update(child);
-
-                    new Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            startFragmentWithReplace(R.id.ll_replace, new AdFragment());
-                        }
-                    }, 500);
-                }, (Throwable throwable) -> Log.d(TAG, "accept: 删除学生呢员工出现问题" + throwable.getMessage()))
-                .isDisposed();
-    }
-
-    private void setJobBeans(int... type) {
-        jobBeans.clear();
-        jobBeans.add(new JobBean(currentLineType + "工程师", type[0]));
-        jobBeans.add(new JobBean(currentLineType + "工人", type[1]));
-        jobBeans.add(new JobBean(currentLineType + "技术人员", type[2]));
-        jobBeans.add(new JobBean(currentLineType + "检测人员", type[3]));
-        customerTypeAdapter.notifyDataSetChanged();
-    }
-
-    /**
-     * 继续获取数据
-     *
-     * @param position 当前位置
-     */
-    private void keepGoing(int position) {
-        if (position < 3) {
-            getProductionLine(position + 1);
-        } else if (position == 3) {
-            // 执行完毕
-            customerLineAdapter.notifyDataSetChanged();
-            for (int i = 0; i < productionLineBeans.size(); i++) {
-                if (productionLineBeans.get(i).getData().get(0).getId() == child.getUserProductionLineId()) {
-                    spProductionLine.setSelection(i, true);
-                    break;
-                }
-            }
-        }
     }
 
     /**
@@ -294,6 +187,112 @@ public class DetailFragment extends BaseFragment {
             default:
                 return "";
         }
+    }
+
+    /**
+     * 获取所有已经存在的生产线
+     *
+     * @param position 开始查找的位置
+     */
+    private void getProductionLine(int position) {
+        remote.getProductionLineByPosition(position).compose(bindToLifecycle())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((ProductionLineBean productionLineBean) -> {
+                    productionLineBeans.add(productionLineBean);
+                    keepGoing(position);
+                }, (Throwable throwable) -> keepGoing(position))
+                .isDisposed();
+    }
+
+    /**
+     * 继续获取数据
+     *
+     * @param position 当前位置
+     */
+    private void keepGoing(int position) {
+        if (position < 3) {
+            getProductionLine(position + 1);
+        } else if (position == 3) {
+            // 执行完毕
+            customerLineAdapter.notifyDataSetChanged();
+            for (int i = 0; i < productionLineBeans.size(); i++) {
+                if (productionLineBeans.get(i).getData().get(0).getId() == child.getUserProductionLineId()) {
+                    spProductionLine.setSelection(i, true);
+                    break;
+                }
+            }
+        }
+    }
+
+    private void setProductionLine(int position) {
+        ProductionLineBean.DataBean dataBean = customerLineAdapter.getItem(position).getData().get(0);
+        // 请求修改员工所处生产线
+        changeLine(child.getId(), dataBean.getId(), (ChangeLineResultBean changeLineResultBean) -> {
+            lineId = dataBean.getLineId();
+            switch (lineId) {
+                case 1:
+                    currentLineType = "轿车汽车";
+                    setJobBeans(1, 2, 3, 4);
+                    break;
+                case 2:
+                    currentLineType = "MPV汽车";
+                    setJobBeans(5, 6, 7, 8);
+                    break;
+                case 3:
+                    currentLineType = "SUV汽车";
+                    setJobBeans(9, 10, 11, 12);
+                    break;
+                default:
+                    break;
+            }
+        });
+    }
+
+    /**
+     * 修改员工所属生产线
+     *
+     * @param id                   需要修改的员工ID
+     * @param userProductionLineId 目标生产线ID
+     * @param onNext               请求成功的回调
+     */
+    private void changeLine(int id, int userProductionLineId, Consumer<ChangeLineResultBean> onNext) {
+        remote.changeLine(id, userProductionLineId).compose(bindToLifecycle())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(onNext, throwable -> Log.d(TAG, "accept: 修改员工所属生产线出现问题-----" + throwable.getMessage()))
+                .isDisposed();
+    }
+
+    private void setJobBeans(int... type) {
+        jobBeans.clear();
+        jobBeans.add(new JobBean(currentLineType + "工程师", type[0]));
+        jobBeans.add(new JobBean(currentLineType + "工人", type[1]));
+        jobBeans.add(new JobBean(currentLineType + "技术人员", type[2]));
+        jobBeans.add(new JobBean(currentLineType + "检测人员", type[3]));
+        customerTypeAdapter.notifyDataSetChanged();
+    }
+
+    /**
+     * 删除学生员工
+     */
+    private void deleteStudent() {
+        remote.removeStudent(child.getId()).compose(bindToLifecycle())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((RemoveStudentResult removeStudentResult) -> {
+                    Log.d(TAG, "accept: " + removeStudentResult.toString());
+
+                    pbProgress.setVisibility(View.GONE);
+                    tvTextStatus.setText("删除成功");
+                    tvTextStatus.setVisibility(View.VISIBLE);
+
+                    refresh.update(child);
+
+                    new Handler().postDelayed(() -> startFragmentWithReplace(R.id.ll_replace, new AdFragment()), 500);
+
+                }, (Throwable throwable) -> Log.d(TAG, "accept: 删除学生呢员工出现问题" + throwable.getMessage()))
+                .isDisposed();
     }
 
     class CustomerLineAdapter extends BaseAdapter {
