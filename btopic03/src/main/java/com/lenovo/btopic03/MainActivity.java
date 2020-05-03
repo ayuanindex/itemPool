@@ -10,7 +10,6 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
 
-import com.bumptech.glide.load.data.mediastore.ThumbFetcher;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.data.Entry;
@@ -24,12 +23,8 @@ import com.lenovo.btopic03.bean.ResultBean;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-import javax.xml.transform.Result;
-
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
 /**
@@ -80,37 +75,24 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void initEvent() {
-        cardLightOpen.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                changeStatus(tvLightOpenText, tvLightCloseText, true);
-                changeLightStatus(true);
-            }
+        cardLightOpen.setOnClickListener((View v) -> {
+            changeStatus(tvLightOpenText, tvLightCloseText, true);
+            changeLightStatus(true);
         });
 
-        cardLightClose.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                changeStatus(tvLightOpenText, tvLightCloseText, false);
-                changeLightStatus(false);
-            }
+        cardLightClose.setOnClickListener((View v) -> {
+            changeStatus(tvLightOpenText, tvLightCloseText, false);
+            changeLightStatus(false);
         });
 
-        cardAirConditioningOpen.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                changeStatus(tvAirConditioningOpenText, tvAirConditioningCloseText, true);
-                changeAirConditioningStatus(1);
-            }
-
+        cardAirConditioningOpen.setOnClickListener((View v) -> {
+            changeStatus(tvAirConditioningOpenText, tvAirConditioningCloseText, true);
+            changeAirConditioningStatus(1);
         });
 
-        cardAirConditioningClose.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                changeStatus(tvAirConditioningOpenText, tvAirConditioningCloseText, false);
-                changeAirConditioningStatus(2);
-            }
+        cardAirConditioningClose.setOnClickListener((View v) -> {
+            changeStatus(tvAirConditioningOpenText, tvAirConditioningCloseText, false);
+            changeAirConditioningStatus(2);
         });
     }
 
@@ -128,7 +110,8 @@ public class MainActivity extends BaseActivity {
      */
     private void initChart() {
         yVals = new ArrayList<>();
-        for (int i = 0; i < 19; i++) {
+        int i1 = 19;
+        for (int i = 0; i < i1; i++) {
             yVals.add(new Entry(i, 0));
         }
         lineDataSet = new LineDataSet(yVals, "耗电量");
@@ -151,33 +134,20 @@ public class MainActivity extends BaseActivity {
 
     private void initEnvironment() {
         Observable.interval(3, TimeUnit.SECONDS)
-                .subscribe(new Consumer<Long>() {
-                    @Override
-                    public void accept(Long aLong) throws Exception {
-                        remote.getEnvironment(1).compose(bindToLifecycle())
-                                .subscribeOn(Schedulers.io())
-                                .map(new Function<EnvironmentBean, EnvironmentBean.DataBean>() {
-                                    @Override
-                                    public EnvironmentBean.DataBean apply(EnvironmentBean environmentBean) throws Exception {
-                                        return environmentBean.getData().get(0);
-                                    }
-                                })
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(new Consumer<EnvironmentBean.DataBean>() {
-                                    @Override
-                                    public void accept(EnvironmentBean.DataBean dataBean) throws Exception {
-                                        Log.d(TAG, "accept: " + dataBean.toString());
-                                        // 添加图表数据
-                                        addData(dataBean);
-                                        // 设置灯光和空调的状态
-                                        setLightOrAirConditioningStatus(dataBean.getLightSwitch(), dataBean.getAcOnOff());
-                                        // 根据环境温度设置空调状态
-                                        autoChangeAirConditioningStatus(dataBean.getWorkshopTemp());
-                                    }
-                                }, (Throwable throwable) -> Log.d(TAG, "accept: 获取工厂环境出现问题" + throwable.getMessage()))
-                                .isDisposed();
-                    }
-                }, (Throwable throwable) -> Log.d(TAG, "accept: 循环出现问题" + throwable.getMessage()))
+                .subscribe((Long aLong) -> remote.getEnvironment(1).compose(bindToLifecycle())
+                        .subscribeOn(Schedulers.io())
+                        .map((EnvironmentBean environmentBean) -> environmentBean.getData().get(0))
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe((EnvironmentBean.DataBean dataBean) -> {
+                            Log.d(TAG, "accept: " + dataBean.toString());
+                            // 添加图表数据
+                            addData(dataBean);
+                            // 设置灯光和空调的状态
+                            setLightOrAirConditioningStatus(dataBean.getLightSwitch(), dataBean.getAcOnOff());
+                            // 根据环境温度设置空调状态
+                            autoChangeAirConditioningStatus(dataBean.getWorkshopTemp());
+                        }, (Throwable throwable) -> Log.d(TAG, "accept: 获取工厂环境出现问题" + throwable.getMessage()))
+                        .isDisposed(), (Throwable throwable) -> Log.d(TAG, "accept: 循环出现问题" + throwable.getMessage()))
                 .isDisposed();
     }
 
@@ -189,7 +159,8 @@ public class MainActivity extends BaseActivity {
     private void autoChangeAirConditioningStatus(String workshopTemp) {
         int workShopTempInt = Integer.parseInt(workshopTemp.replace("℃", ""));
         changeStatus(tvAirConditioningOpenText, tvAirConditioningCloseText, workShopTempInt == 1);
-        if (workShopTempInt > 20) {
+        int criticalValue = 20;
+        if (workShopTempInt > criticalValue) {
             changeAirConditioningStatus(1);
         } else {
             changeAirConditioningStatus(2);
@@ -202,7 +173,8 @@ public class MainActivity extends BaseActivity {
      * @param dataBean 需要添加的数据
      */
     private void addData(EnvironmentBean.DataBean dataBean) {
-        if (yVals.size() > 20) {
+        int maxIndex = 20;
+        if (yVals.size() > maxIndex) {
             yVals.remove(0);
         }
 
@@ -214,7 +186,7 @@ public class MainActivity extends BaseActivity {
                 entry.setX(i);
                 yVals.set(i, entry);
             }
-            if (yVals.size() > 20) {
+            if (yVals.size() > maxIndex) {
                 yVals.add(new Entry(19, powerConsumeInt));
             } else {
                 yVals.add(new Entry(yVals.size() - 1, powerConsumeInt));
@@ -281,19 +253,11 @@ public class MainActivity extends BaseActivity {
     private void changeLightStatus(boolean isOpen) {
         remote.changeLightStatus(1, isOpen ? 1 : 0).compose(bindToLifecycle())
                 .subscribeOn(Schedulers.io())
-                .map(new Function<ResultBean, ResultBean.DataBean>() {
-                    @Override
-                    public ResultBean.DataBean apply(ResultBean resultBean) throws Exception {
-                        return resultBean.getData();
-                    }
-                })
+                .map(ResultBean::getData)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<ResultBean.DataBean>() {
-                    @Override
-                    public void accept(ResultBean.DataBean dataBean) throws Exception {
-                        Log.d(TAG, "accept: " + dataBean.toString());
-                    }
-                }, (Throwable throwable) -> Log.d(TAG, "accept: 修改开关在状态出现问题-------" + throwable.getMessage()))
+                .subscribe(
+                        (ResultBean.DataBean dataBean) -> Log.d(TAG, "accept: " + dataBean.toString()),
+                        (Throwable throwable) -> Log.d(TAG, "accept: 修改开关在状态出现问题-------" + throwable.getMessage()))
                 .isDisposed();
     }
 
@@ -307,7 +271,10 @@ public class MainActivity extends BaseActivity {
                 .subscribeOn(Schedulers.io())
                 .map(ResultBean::getData)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe((ResultBean.DataBean dataBean) -> Log.d(TAG, "accept: " + dataBean.toString()), (Throwable throwable) -> Log.d(TAG, "accept: 修改空调状态出现错误----" + throwable.getMessage()))
+                .subscribe(
+                        (ResultBean.DataBean dataBean) -> Log.d(TAG, "accept: " + dataBean.toString()),
+                        (Throwable throwable) -> Log.d(TAG, "accept: 修改空调状态出现错误----" + throwable.getMessage())
+                )
                 .isDisposed();
 
     }
