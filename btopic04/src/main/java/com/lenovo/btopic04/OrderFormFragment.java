@@ -17,6 +17,7 @@ import com.lenovo.btopic04.bean.OrderBean;
 import com.lenovo.btopic04.bean.ResultDataBean;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -27,17 +28,16 @@ import io.reactivex.schedulers.Schedulers;
  * @author ayuan
  */
 public class OrderFormFragment extends BaseFragment {
-    private final MainActivity.ResultListener resultListener;
     private final int index;
+    public static List<OrderBean.DataBean> dataBeans;
     private TextView tvPageStatus;
     private ListView lvList;
-    private List<OrderBean.DataBean> orderData;
     private CustomerAdapter customerAdapter;
     private SimpleDateFormat simpleDateFormat;
     private ApiService remote;
+    private ArrayList<OrderBean.DataBean> orderBeans;
 
-    public OrderFormFragment(MainActivity.ResultListener resultListener, int index) {
-        this.resultListener = resultListener;
+    public OrderFormFragment(int index) {
         this.index = index;
     }
 
@@ -57,9 +57,24 @@ public class OrderFormFragment extends BaseFragment {
     protected void init() {
         remote = Network.remote(ApiService.class);
 
-        orderData = resultListener.getOrderData(index);
-
         simpleDateFormat = new SimpleDateFormat("yyyy/MM/dd");
+
+        orderBeans = new ArrayList<>();
+
+        if (index == -1) {
+            orderBeans.addAll(dataBeans);
+        } else {
+            for (OrderBean.DataBean orderDatum : dataBeans) {
+                if (orderDatum.getType() == index) {
+                    orderBeans.add(orderDatum);
+                }
+            }
+        }
+
+        if (orderBeans.size() == 0) {
+            lvList.setVisibility(View.GONE);
+            tvPageStatus.setVisibility(View.VISIBLE);
+        }
 
         customerAdapter = new CustomerAdapter();
         lvList.setAdapter(customerAdapter);
@@ -82,14 +97,9 @@ public class OrderFormFragment extends BaseFragment {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe((OrderBean.DataBean dataBean) -> {
                     if (dataBean != null) {
-                        lvList.setVisibility(View.VISIBLE);
-                        tvPageStatus.setVisibility(View.GONE);
-
-                        orderData.add(dataBean);
+                        orderBeans.add(dataBean);
+                        dataBeans.add(dataBean);
                         customerAdapter.notifyDataSetChanged();
-                    } else {
-                        lvList.setVisibility(View.GONE);
-                        tvPageStatus.setVisibility(View.VISIBLE);
                     }
                 }, (Throwable throwable) -> Log.d(TAG, "accept: 添加订单出现错误" + throwable.getMessage()))
                 .isDisposed();
@@ -114,13 +124,19 @@ public class OrderFormFragment extends BaseFragment {
                 .subscribe((ResultDataBean.DataBean dataBean) -> {
                     if (dataBean != null) {
                         Log.d(TAG, "accept: " + dataBean.toString());
-                        for (OrderBean.DataBean orderDatum : orderData) {
+                        for (OrderBean.DataBean orderDatum : dataBeans) {
                             if (orderDatum.getId() == id) {
-                                orderData.remove(orderDatum);
+                                orderBeans.remove(orderDatum);
+                                dataBeans.remove(orderDatum);
                                 break;
                             }
                         }
                         customerAdapter.notifyDataSetChanged();
+
+                        if (orderBeans.size() == 0) {
+                            lvList.setVisibility(View.GONE);
+                            tvPageStatus.setVisibility(View.VISIBLE);
+                        }
                     }
                 }, (Throwable throwable) -> Log.d(TAG, "accept: 移除订单发生错误----" + throwable.getMessage()))
                 .isDisposed();
@@ -139,12 +155,12 @@ public class OrderFormFragment extends BaseFragment {
 
         @Override
         public int getCount() {
-            return orderData.size();
+            return orderBeans.size();
         }
 
         @Override
         public OrderBean.DataBean getItem(int position) {
-            return orderData.get(position);
+            return orderBeans.get(position);
         }
 
         @Override
@@ -179,7 +195,7 @@ public class OrderFormFragment extends BaseFragment {
             ivOption.setOnClickListener(null);
             ivOption.setOnClickListener((View v) -> {
                 boolean checked = getItem(position).isChecked();
-                for (OrderBean.DataBean orderDatum : orderData) {
+                for (OrderBean.DataBean orderDatum : dataBeans) {
                     if (!orderDatum.equals(getItem(position))) {
                         orderDatum.setChecked(false);
                     }
@@ -209,4 +225,11 @@ public class OrderFormFragment extends BaseFragment {
 
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (customerAdapter != null) {
+            customerAdapter.notifyDataSetChanged();
+        }
+    }
 }

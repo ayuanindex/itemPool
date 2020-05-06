@@ -16,7 +16,7 @@
         app:tabIndicator="@drawable/xml_indiator"
         app:tabIndicatorColor="#A33D9B"
         app:tabIndicatorFullWidth="false"
-        app:tabIndicatorHeight="5dp"
+        app:tabIndicatorHeight="8dp"
         app:tabMode="auto"
         app:tabTextColor="#606060" />
 

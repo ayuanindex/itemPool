@@ -69,6 +69,7 @@ public class MainActivity extends BaseFragmentActivity {
         labels.add("生产中");
         labels.add("完成");
 
+        viewPager.setOffscreenPageLimit(0);
         mainPagerAdapter = new MainPagerAdapter(getSupportFragmentManager(), FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
         viewPager.setAdapter(mainPagerAdapter);
 
@@ -81,42 +82,24 @@ public class MainActivity extends BaseFragmentActivity {
                 .map(OrderBean::getData)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe((List<OrderBean.DataBean> dataBeans) -> {
-                    ResultListener resultListener = index -> {
-                        if (index == -1) {
-                            return dataBeans;
-                        }
+                    if (dataBeans != null) {
+                        OrderFormFragment.dataBeans = dataBeans;
+                        Log.d(TAG, "getAllOrder: 哈哈哈" + dataBeans.size());
+                        // 全部订单
+                        baseFragments.add(new OrderFormFragment(-1));
+                        // 已下单
+                        baseFragments.add(new OrderFormFragment(0));
+                        // 生产中
+                        baseFragments.add(new OrderFormFragment(1));
+                        // 完成
+                        baseFragments.add(new OrderFormFragment(2));
 
-                        ArrayList<OrderBean.DataBean> orderPlaced = new ArrayList<>();
-                        for (OrderBean.DataBean dataBean : dataBeans) {
-                            if (dataBean.getType() == index) {
-                                orderPlaced.add(dataBean);
-                            }
-                        }
-                        return orderPlaced;
-                    };
-                    Log.d(TAG, "getAllOrder: 哈哈哈" + dataBeans.size());
-                    // 全部订单
-                    baseFragments.add(new OrderFormFragment(resultListener, -1));
-                    // 已下单
-                    baseFragments.add(new OrderFormFragment(resultListener, 0));
-                    // 生产中
-                    baseFragments.add(new OrderFormFragment(resultListener, 1));
-                    // 完成
-                    baseFragments.add(new OrderFormFragment(resultListener, 2));
-
-                    mainPagerAdapter.notifyDataSetChanged();
+                        mainPagerAdapter.notifyDataSetChanged();
+                    } else {
+                        OrderFormFragment.dataBeans = new ArrayList<>();
+                    }
                 }, (Throwable throwable) -> Log.d(TAG, "accept: 获取所有订单出现错误---------" + throwable.getMessage()))
                 .isDisposed();
-    }
-
-    public interface ResultListener {
-        /**
-         * 获取到对应类型的订单
-         *
-         * @param index 订单类型
-         * @return 返回筛选后的订单
-         */
-        List<OrderBean.DataBean> getOrderData(int index);
     }
 
     class MainPagerAdapter extends FragmentPagerAdapter {
