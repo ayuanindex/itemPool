@@ -1,14 +1,31 @@
 package com.lenovo.btopic06;
 
-import androidx.appcompat.app.AppCompatActivity;
+import android.content.Intent;
 
-import android.os.Bundle;
+import com.lenovo.basic.base.act.BaseActivity;
 
-public class MainActivity extends AppCompatActivity {
+/**
+ * @author ayuan
+ */
+public class MainActivity extends BaseActivity {
+    @Override
+    protected int getLayoutIdRes() {
+        startActivity(new Intent(this, BannerActivity.class), false);
+        return R.layout.activity_main;
+    }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+    protected void initView() {
+
+    }
+
+    @Override
+    protected void initEvent() {
+
+    }
+
+    @Override
+    protected void initData() {
+
     }
 }
