@@ -58,7 +58,9 @@ public interface ApiService {
     Observable<ProductionProcessesBean> getAllProductionProcesses(@Field("userProductionLineId") int userProductionLineId);
 
     /**
-     * @return 获取所欲生产工序
+     * 获取所欲生产工序
+     *
+     * @return 返回可操作的RxJava对象
      */
     @POST("dataInterface/Stage/getAll")
     Observable<ProductionProcedureBean> getAllProductionProcedure();
