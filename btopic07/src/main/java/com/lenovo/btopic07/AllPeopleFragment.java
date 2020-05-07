@@ -97,7 +97,6 @@ public class AllPeopleFragment extends BaseFragment {
 
                     new Handler().postDelayed(() -> isLoading(false), 1000);
 
-                    Log.d(TAG, "accept: " + dataBeans.toString());
                 }, (Throwable throwable) -> Log.d(TAG, "accept: 获取所有人员信息出现问题-----" + throwable.getMessage()))
                 .isDisposed();
     }

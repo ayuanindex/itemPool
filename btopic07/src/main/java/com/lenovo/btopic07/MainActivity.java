@@ -8,6 +8,8 @@ import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.MotionEvent;
+import android.view.TextureView;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -33,13 +35,12 @@ public class MainActivity extends BaseFragmentActivity {
     private CardView cardCancel;
     private LinearLayout llReplace;
     private TextView tvSearch;
-    private boolean model = false;
-    private boolean searchModel = true;
     private AllPeopleFragment allPeopleFragment;
     private SearchHistoryFragment searchHistoryFragment;
     private Runnable r;
     private Handler uiHandler;
     private Dao<HistoryBean, ?> historyBeanDao;
+    private boolean model = false;
 
     @Override
     protected int getLayoutIdRes() {
@@ -58,52 +59,45 @@ public class MainActivity extends BaseFragmentActivity {
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void initEvent() {
+        etSearchContent.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                startFragmentWithReplace(R.id.ll_replace, searchHistoryFragment);
+                return false;
+            }
+        });
+
         etSearchContent.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                Log.d(TAG, "beforeTextChanged: " + s);
+
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                Log.d(TAG, "onTextChanged: " + s);
-                if (searchModel) {
-
-                    startFragmentWithReplace(R.id.ll_replace, searchHistoryFragment);
-                    tvSearch.setText("取消");
-                    model = true;
-                    searchModel = false;
+                if (TextUtils.isEmpty(s)) {
+                    AllPeopleFragment.dataBeans.clear();
+                    AllPeopleFragment.dataBeans.addAll(AllPeopleFragment.dataBeanList);
+                    startFragmentWithReplace(R.id.ll_replace, allPeopleFragment);
+                } else {
+                    if (model) {
+                        startFragmentWithReplace(R.id.ll_replace, searchHistoryFragment);
+                        model = false;
+                    }
                 }
             }
 
             @Override
             public void afterTextChanged(Editable s) {
-                if (TextUtils.isEmpty(s)) {
-                    uiHandler.removeCallbacks(r);
-                    AllPeopleFragment.dataBeans.addAll(AllPeopleFragment.dataBeanList);
-                    startFragmentWithReplace(R.id.ll_replace, allPeopleFragment);
-                } else {
-                    Log.d(TAG, "afterTextChanged: " + s);
-                    uiHandler.removeCallbacks(r);
-                    uiHandler.postDelayed(r, 1500);
-                }
+
             }
         });
 
         cardCancel.setOnClickListener((View v) -> {
-            if (model) {
-                startFragmentWithReplace(R.id.ll_replace, allPeopleFragment);
-                etSearchContent.setFocusable(View.FOCUSABLE);
-                tvSearch.setText("搜索");
-                model = false;
-                searchModel = true;
-                AllPeopleFragment.dataBeans.clear();
-                AllPeopleFragment.dataBeans.addAll(AllPeopleFragment.dataBeanList);
-            } else {
-                uiHandler.post(r);
-            }
+            // 点击搜索按钮进行搜索
+            uiHandler.post(r);
+            model = true;
         });
-
     }
 
     @SuppressLint("NewApi")
@@ -122,8 +116,6 @@ public class MainActivity extends BaseFragmentActivity {
                 try {
                     // 执行延时操作，切换到人员显示界面
                     startFragmentWithReplace(R.id.ll_replace, allPeopleFragment);
-                    model = false;
-                    searchModel = true;
                     tvSearch.setText("搜索");
 
                     AllPeopleFragment.dataBeans.clear();
@@ -152,7 +144,6 @@ public class MainActivity extends BaseFragmentActivity {
                         if (!historyBeans.contains(t)) {
                             historyBeanDao.create(t);
                         }
-                        Log.d(TAG, "initData: " + AllPeopleFragment.dataBeans.toString());
                     } else {
                         AllPeopleFragment.dataBeans.addAll(AllPeopleFragment.dataBeanList);
                     }
@@ -195,6 +186,9 @@ public class MainActivity extends BaseFragmentActivity {
     }
 
     public interface ResultData {
+        /**
+         * @param str
+         */
         void input(String str);
     }
 }
