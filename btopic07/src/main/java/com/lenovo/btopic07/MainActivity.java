@@ -3,6 +3,7 @@ package com.lenovo.btopic07;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.os.Build;
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -17,7 +18,12 @@ import android.widget.Toast;
 import androidx.annotation.RequiresApi;
 import androidx.cardview.widget.CardView;
 
+import com.j256.ormlite.dao.Dao;
 import com.lenovo.basic.base.act.BaseFragmentActivity;
+import com.lenovo.btopic07.bean.HistoryBean;
+import com.lenovo.btopic07.databases.OrmHelper;
+
+import java.sql.SQLException;
 
 /**
  * @author ayuan
@@ -30,6 +36,9 @@ public class MainActivity extends BaseFragmentActivity {
     private boolean model = false;
     private AllPeopleFragment allPeopleFragment;
     private SearchHistoryFragment searchHistoryFragment;
+    private Runnable r;
+    private Handler uiHandler;
+    private Dao<HistoryBean, ?> historyBeanDao;
 
     @Override
     protected int getLayoutIdRes() {
@@ -69,6 +78,8 @@ public class MainActivity extends BaseFragmentActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 Log.d(TAG, "afterTextChanged: " + s);
+                uiHandler.removeCallbacks(r);
+                uiHandler.postDelayed(r, 1000);
             }
         });
 
@@ -76,7 +87,7 @@ public class MainActivity extends BaseFragmentActivity {
             if (model) {
                 startFragmentWithReplace(R.id.ll_replace, allPeopleFragment);
                 etSearchContent.setFocusable(View.FOCUSABLE);
-                tvSearch.setText("已招聘");
+                tvSearch.setText("搜索");
                 model = false;
             }
         });
@@ -85,26 +96,36 @@ public class MainActivity extends BaseFragmentActivity {
     @SuppressLint("NewApi")
     @Override
     protected void initData() {
-        requestPermissions(new String[]{
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-        }, 10);
+        try {
+            requestPermissions(new String[]{
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+            }, 10);
 
-        searchHistoryFragment = new SearchHistoryFragment();
-        allPeopleFragment = new AllPeopleFragment();
-        startFragmentWithReplace(R.id.ll_replace, allPeopleFragment);
-    }
+            historyBeanDao = OrmHelper.getInstance().getDao(HistoryBean.class);
 
-    private void submit() {
-        // validate
-        String searchContent = etSearchContent.getText().toString().trim();
-        if (TextUtils.isEmpty(searchContent)) {
-            Toast.makeText(this, "键入搜索人员", Toast.LENGTH_SHORT).show();
-            return;
+            uiHandler = new Handler(getMainLooper());
+            r = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        // 执行延时操作，切换到人员显示界面
+                        startFragmentWithReplace(R.id.ll_replace, allPeopleFragment);
+                        model = false;
+                        tvSearch.setText("搜索");
+
+                        historyBeanDao.create(new HistoryBean(etSearchContent.getText().toString().trim()));
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
+
+            searchHistoryFragment = new SearchHistoryFragment();
+            allPeopleFragment = new AllPeopleFragment();
+            startFragmentWithReplace(R.id.ll_replace, allPeopleFragment);
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-
-        // TODO validate success, do something
-
-
     }
 }

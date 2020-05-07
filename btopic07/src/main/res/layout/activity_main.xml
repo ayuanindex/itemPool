@@ -74,7 +74,7 @@
                     android:clickable="false"
                     android:focusable="false"
                     android:gravity="center"
-                    android:text="已招聘"
+                    android:text="搜索"
                     android:textColor="#ffffff"
                     android:textSize="18sp" />
             </androidx.cardview.widget.CardView>

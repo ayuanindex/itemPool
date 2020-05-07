@@ -13,6 +13,13 @@ public class HistoryBean {
     @DatabaseField(columnName = "label")
     private String label;
 
+    public HistoryBean() {
+    }
+
+    public HistoryBean(String label) {
+        this.label = label;
+    }
+
     public String getLabel() {
         return label;
     }

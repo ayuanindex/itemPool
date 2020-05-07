@@ -1,5 +1,6 @@
 package com.lenovo.btopic07;
 
+import android.os.Handler;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -16,6 +17,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.os.Looper.getMainLooper;
+
 /**
  * @author ayuan
  */
@@ -25,6 +28,7 @@ public class SearchHistoryFragment extends BaseFragment {
     private List<HistoryBean> historyBeans = new ArrayList<>();
     private Dao<HistoryBean, ?> historyBeanDao;
     private CustomerAdapter customerAdapter;
+    private Handler uiHandler;
 
     @Override
     protected int getLayout() {
@@ -39,6 +43,8 @@ public class SearchHistoryFragment extends BaseFragment {
     @Override
     protected void init() {
         try {
+            uiHandler = new Handler(getMainLooper());
+
             historyBeans = new ArrayList<>();
 
             historyBeanDao = OrmHelper.getInstance().getDao(HistoryBean.class);
@@ -88,9 +94,15 @@ public class SearchHistoryFragment extends BaseFragment {
                         try {
                             List<HistoryBean> label = historyBeanDao.queryBuilder().where().eq("label", getItem(position).getLabel()).query();
                             if (label.size() > 0) {
+                                historyBeans.remove(getItem(position));
                                 historyBeanDao.delete(label);
+                                uiHandler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        notifyDataSetChanged();
+                                    }
+                                });
                             }
-                            customerAdapter.notifyDataSetChanged();
                         } catch (SQLException e) {
                             e.printStackTrace();
                         }
