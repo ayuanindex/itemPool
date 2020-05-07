@@ -7,12 +7,9 @@ import android.os.Handler;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.MotionEvent;
-import android.view.TextureView;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
@@ -33,7 +30,6 @@ import java.util.List;
 public class MainActivity extends BaseFragmentActivity {
     private EditText etSearchContent;
     private CardView cardCancel;
-    private LinearLayout llReplace;
     private TextView tvSearch;
     private AllPeopleFragment allPeopleFragment;
     private SearchHistoryFragment searchHistoryFragment;
@@ -49,22 +45,18 @@ public class MainActivity extends BaseFragmentActivity {
 
     @Override
     protected void initView() {
-        etSearchContent = (EditText) findViewById(R.id.et_searchContent);
-        cardCancel = (CardView) findViewById(R.id.card_cancel);
-        llReplace = (LinearLayout) findViewById(R.id.ll_replace);
-        tvSearch = (TextView) findViewById(R.id.tv_search);
+        etSearchContent = findViewById(R.id.et_searchContent);
+        cardCancel = findViewById(R.id.card_cancel);
+        tvSearch = findViewById(R.id.tv_search);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void initEvent() {
-        etSearchContent.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                startFragmentWithReplace(R.id.ll_replace, searchHistoryFragment);
-                return false;
-            }
+        etSearchContent.setOnTouchListener((View v, MotionEvent event) -> {
+            startFragmentWithReplace(R.id.ll_replace, searchHistoryFragment);
+            return false;
         });
 
         etSearchContent.addTextChangedListener(new TextWatcher() {
@@ -152,9 +144,7 @@ public class MainActivity extends BaseFragmentActivity {
                 }
             };
 
-            ResultData resultData = (String str) -> {
-                etSearchContent.setText(str);
-            };
+            ResultData resultData = (String str) -> etSearchContent.setText(str);
 
             searchHistoryFragment = new SearchHistoryFragment(resultData);
             allPeopleFragment = new AllPeopleFragment();
@@ -187,7 +177,9 @@ public class MainActivity extends BaseFragmentActivity {
 
     public interface ResultData {
         /**
-         * @param str
+         * 点击置入历史记录
+         *
+         * @param str 搜索记录文本
          */
         void input(String str);
     }

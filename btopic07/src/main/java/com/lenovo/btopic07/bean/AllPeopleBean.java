@@ -1,5 +1,7 @@
 package com.lenovo.btopic07.bean;
 
+import androidx.annotation.NonNull;
+
 import java.util.List;
 
 /**
@@ -126,6 +128,7 @@ public class AllPeopleBean {
             this.content = content;
         }
 
+        @NonNull
         @Override
         public String toString() {
             return "DataBean{" +

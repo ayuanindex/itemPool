@@ -43,14 +43,9 @@ public class SearchHistoryFragment extends BaseFragment {
 
     @Override
     protected void initView(View view) {
-        gvList = (GridView) view.findViewById(R.id.gvList);
+        gvList = view.findViewById(R.id.gvList);
 
-        gvList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                resultData.input(historyBeans.get(position).getLabel());
-            }
-        });
+        gvList.setOnItemClickListener((AdapterView<?> parent, View view1, int position, long id) -> resultData.input(historyBeans.get(position).getLabel()));
     }
 
     @Override
@@ -99,30 +94,28 @@ public class SearchHistoryFragment extends BaseFragment {
             }
             initView(view);
             tvLabel.setText(getItem(position).getLabel());
-            ivRemove.setOnClickListener((View v) -> {
-                new Thread() {
-                    @Override
-                    public void run() {
-                        super.run();
-                        try {
-                            List<HistoryBean> label = historyBeanDao.queryBuilder().where().eq("label", getItem(position).getLabel()).query();
-                            if (label.size() > 0) {
-                                historyBeans.remove(getItem(position));
-                                uiHandler.post(() -> customerAdapter.notifyDataSetChanged());
-                                historyBeanDao.delete(label);
-                            }
-                        } catch (SQLException e) {
-                            e.printStackTrace();
+            ivRemove.setOnClickListener((View v) -> new Thread() {
+                @Override
+                public void run() {
+                    super.run();
+                    try {
+                        List<HistoryBean> label = historyBeanDao.queryBuilder().where().eq("label", getItem(position).getLabel()).query();
+                        if (label.size() > 0) {
+                            historyBeans.remove(getItem(position));
+                            uiHandler.post(() -> customerAdapter.notifyDataSetChanged());
+                            historyBeanDao.delete(label);
                         }
+                    } catch (SQLException e) {
+                        e.printStackTrace();
                     }
-                }.start();
-            });
+                }
+            }.start());
             return view;
         }
 
         private void initView(View view) {
-            tvLabel = (TextView) view.findViewById(R.id.tv_label);
-            ivRemove = (ImageView) view.findViewById(R.id.iv_remove);
+            tvLabel = view.findViewById(R.id.tv_label);
+            ivRemove = view.findViewById(R.id.iv_remove);
         }
     }
 
