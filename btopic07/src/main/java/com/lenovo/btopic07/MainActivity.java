@@ -8,12 +8,10 @@ import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 import androidx.cardview.widget.CardView;
@@ -36,6 +34,7 @@ public class MainActivity extends BaseFragmentActivity {
     private LinearLayout llReplace;
     private TextView tvSearch;
     private boolean model = false;
+    private boolean searchModel = true;
     private AllPeopleFragment allPeopleFragment;
     private SearchHistoryFragment searchHistoryFragment;
     private Runnable r;
@@ -59,17 +58,6 @@ public class MainActivity extends BaseFragmentActivity {
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void initEvent() {
-        etSearchContent.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus) {
-                    startFragmentWithReplace(R.id.ll_replace, searchHistoryFragment);
-                    tvSearch.setText("取消");
-                    model = true;
-                }
-            }
-        });
-
         etSearchContent.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -79,6 +67,13 @@ public class MainActivity extends BaseFragmentActivity {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 Log.d(TAG, "onTextChanged: " + s);
+                if (searchModel) {
+
+                    startFragmentWithReplace(R.id.ll_replace, searchHistoryFragment);
+                    tvSearch.setText("取消");
+                    model = true;
+                    searchModel = false;
+                }
             }
 
             @Override
@@ -90,7 +85,7 @@ public class MainActivity extends BaseFragmentActivity {
                 } else {
                     Log.d(TAG, "afterTextChanged: " + s);
                     uiHandler.removeCallbacks(r);
-                    uiHandler.postDelayed(r, 1000);
+                    uiHandler.postDelayed(r, 1500);
                 }
             }
         });
@@ -101,10 +96,14 @@ public class MainActivity extends BaseFragmentActivity {
                 etSearchContent.setFocusable(View.FOCUSABLE);
                 tvSearch.setText("搜索");
                 model = false;
+                searchModel = true;
                 AllPeopleFragment.dataBeans.clear();
                 AllPeopleFragment.dataBeans.addAll(AllPeopleFragment.dataBeanList);
+            } else {
+                uiHandler.post(r);
             }
         });
+
     }
 
     @SuppressLint("NewApi")
@@ -124,6 +123,7 @@ public class MainActivity extends BaseFragmentActivity {
                     // 执行延时操作，切换到人员显示界面
                     startFragmentWithReplace(R.id.ll_replace, allPeopleFragment);
                     model = false;
+                    searchModel = true;
                     tvSearch.setText("搜索");
 
                     AllPeopleFragment.dataBeans.clear();
