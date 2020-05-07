@@ -20,10 +20,12 @@ import androidx.cardview.widget.CardView;
 
 import com.j256.ormlite.dao.Dao;
 import com.lenovo.basic.base.act.BaseFragmentActivity;
+import com.lenovo.btopic07.bean.AllPeopleBean;
 import com.lenovo.btopic07.bean.HistoryBean;
 import com.lenovo.btopic07.databases.OrmHelper;
 
 import java.sql.SQLException;
+import java.util.List;
 
 /**
  * @author ayuan
@@ -57,11 +59,15 @@ public class MainActivity extends BaseFragmentActivity {
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void initEvent() {
-        etSearchContent.setOnTouchListener((View v, MotionEvent event) -> {
-            startFragmentWithReplace(R.id.ll_replace, searchHistoryFragment);
-            tvSearch.setText("取消");
-            model = true;
-            return true;
+        etSearchContent.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    startFragmentWithReplace(R.id.ll_replace, searchHistoryFragment);
+                    tvSearch.setText("取消");
+                    model = true;
+                }
+            }
         });
 
         etSearchContent.addTextChangedListener(new TextWatcher() {
@@ -77,9 +83,15 @@ public class MainActivity extends BaseFragmentActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                Log.d(TAG, "afterTextChanged: " + s);
-                uiHandler.removeCallbacks(r);
-                uiHandler.postDelayed(r, 1000);
+                if (TextUtils.isEmpty(s)) {
+                    uiHandler.removeCallbacks(r);
+                    AllPeopleFragment.dataBeans.addAll(AllPeopleFragment.dataBeanList);
+                    startFragmentWithReplace(R.id.ll_replace, allPeopleFragment);
+                } else {
+                    Log.d(TAG, "afterTextChanged: " + s);
+                    uiHandler.removeCallbacks(r);
+                    uiHandler.postDelayed(r, 1000);
+                }
             }
         });
 
@@ -89,6 +101,8 @@ public class MainActivity extends BaseFragmentActivity {
                 etSearchContent.setFocusable(View.FOCUSABLE);
                 tvSearch.setText("搜索");
                 model = false;
+                AllPeopleFragment.dataBeans.clear();
+                AllPeopleFragment.dataBeans.addAll(AllPeopleFragment.dataBeanList);
             }
         });
     }
@@ -105,27 +119,82 @@ public class MainActivity extends BaseFragmentActivity {
             historyBeanDao = OrmHelper.getInstance().getDao(HistoryBean.class);
 
             uiHandler = new Handler(getMainLooper());
-            r = new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        // 执行延时操作，切换到人员显示界面
-                        startFragmentWithReplace(R.id.ll_replace, allPeopleFragment);
-                        model = false;
-                        tvSearch.setText("搜索");
+            r = () -> {
+                try {
+                    // 执行延时操作，切换到人员显示界面
+                    startFragmentWithReplace(R.id.ll_replace, allPeopleFragment);
+                    model = false;
+                    tvSearch.setText("搜索");
 
-                        historyBeanDao.create(new HistoryBean(etSearchContent.getText().toString().trim()));
-                    } catch (SQLException e) {
-                        e.printStackTrace();
+                    AllPeopleFragment.dataBeans.clear();
+
+                    // 工人
+                    String searchStr = etSearchContent.getText().toString().trim();
+                    String regex = ".*" + searchStr + ".*";
+                    // 操作AllPeopleFragment的静态变量集合
+                    for (AllPeopleBean.DataBean dataBean : AllPeopleFragment.dataBeanList) {
+                        if (dataBean.getPeopleName().matches(regex)) {
+                            AllPeopleFragment.dataBeans.add(dataBean);
+                        } else if (String.valueOf(dataBean.getHp()).matches(regex)) {
+                            AllPeopleFragment.dataBeans.add(dataBean);
+                        } else if (String.valueOf(dataBean.getGold()).matches(regex)) {
+                            AllPeopleFragment.dataBeans.add(dataBean);
+                        } else if (getWorkType(dataBean.getStatus()).matches(regex)) {
+                            AllPeopleFragment.dataBeans.add(dataBean);
+                        } else if (dataBean.getContent().matches(regex)) {
+                            AllPeopleFragment.dataBeans.add(dataBean);
+                        }
                     }
+
+                    if (AllPeopleFragment.dataBeans.size() > 0) {
+                        HistoryBean t = new HistoryBean(searchStr);
+                        List<HistoryBean> historyBeans = historyBeanDao.queryForAll();
+                        if (!historyBeans.contains(t)) {
+                            historyBeanDao.create(t);
+                        }
+                        Log.d(TAG, "initData: " + AllPeopleFragment.dataBeans.toString());
+                    } else {
+                        AllPeopleFragment.dataBeans.addAll(AllPeopleFragment.dataBeanList);
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
                 }
             };
 
-            searchHistoryFragment = new SearchHistoryFragment();
+            ResultData resultData = (String str) -> {
+                etSearchContent.setText(str);
+            };
+
+            searchHistoryFragment = new SearchHistoryFragment(resultData);
             allPeopleFragment = new AllPeopleFragment();
             startFragmentWithReplace(R.id.ll_replace, allPeopleFragment);
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 匹配员工职位
+     *
+     * @param status 当前职位标示符
+     * @return 返沪职位信息
+     */
+    private String getWorkType(int status) {
+        switch (status) {
+            case 0:
+                return "工程师";
+            case 1:
+                return "工人";
+            case 2:
+                return "技术人员";
+            case 3:
+                return "检测人员";
+            default:
+                return "暂无职位";
+        }
+    }
+
+    public interface ResultData {
+        void input(String str);
     }
 }

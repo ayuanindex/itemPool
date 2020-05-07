@@ -30,7 +30,15 @@ public class AllPeopleFragment extends BaseFragment {
     private ProgressBar progress;
     private RecyclerView rcList;
     private ApiService remote;
-    private static List<AllPeopleBean.DataBean> dataBeanList = new ArrayList<>();
+    /**
+     * 主集合
+     */
+    public static List<AllPeopleBean.DataBean> dataBeanList = new ArrayList<>();
+
+    /**
+     * 副集合
+     */
+    public static List<AllPeopleBean.DataBean> dataBeans = new ArrayList<>();
     private CustomerAdapter customerAdapter;
 
     @Override
@@ -81,6 +89,9 @@ public class AllPeopleFragment extends BaseFragment {
                     if (dataBeanList.size() != dataBeans.size()) {
                         dataBeanList.clear();
                         dataBeanList = dataBeans;
+                        if (AllPeopleFragment.dataBeans.size() == 0) {
+                            AllPeopleFragment.dataBeans.addAll(dataBeans);
+                        }
                     }
                     customerAdapter.notifyDataSetChanged();
 
@@ -102,7 +113,7 @@ public class AllPeopleFragment extends BaseFragment {
 
         @Override
         public void onBindViewHolder(@NonNull CustomerAdapter.ViewHolder holder, int position) {
-            AllPeopleBean.DataBean dataBean = dataBeanList.get(position);
+            AllPeopleBean.DataBean dataBean = dataBeans.get(position);
             holder.ivIcon.setImageResource(R.drawable.pic_icon);
             holder.tvPeopleName.setText(dataBean.getPeopleName());
             holder.tvWorkType.setText(getWorkType(dataBean.getStatus()));
@@ -134,7 +145,7 @@ public class AllPeopleFragment extends BaseFragment {
 
         @Override
         public int getItemCount() {
-            return dataBeanList.size();
+            return dataBeans.size();
         }
 
         public class ViewHolder extends RecyclerView.ViewHolder {

@@ -3,6 +3,7 @@ package com.lenovo.btopic07;
 import android.os.Handler;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
@@ -24,11 +25,16 @@ import static android.os.Looper.getMainLooper;
  */
 public class SearchHistoryFragment extends BaseFragment {
 
+    private final MainActivity.ResultData resultData;
     private GridView gvList;
     private List<HistoryBean> historyBeans = new ArrayList<>();
     private Dao<HistoryBean, ?> historyBeanDao;
     private CustomerAdapter customerAdapter;
     private Handler uiHandler;
+
+    public SearchHistoryFragment(MainActivity.ResultData resultData) {
+        this.resultData = resultData;
+    }
 
     @Override
     protected int getLayout() {
@@ -38,6 +44,13 @@ public class SearchHistoryFragment extends BaseFragment {
     @Override
     protected void initView(View view) {
         gvList = (GridView) view.findViewById(R.id.gvList);
+
+        gvList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                resultData.input(historyBeans.get(position).getLabel());
+            }
+        });
     }
 
     @Override
@@ -95,13 +108,8 @@ public class SearchHistoryFragment extends BaseFragment {
                             List<HistoryBean> label = historyBeanDao.queryBuilder().where().eq("label", getItem(position).getLabel()).query();
                             if (label.size() > 0) {
                                 historyBeans.remove(getItem(position));
+                                uiHandler.post(() -> customerAdapter.notifyDataSetChanged());
                                 historyBeanDao.delete(label);
-                                uiHandler.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        notifyDataSetChanged();
-                                    }
-                                });
                             }
                         } catch (SQLException e) {
                             e.printStackTrace();
