@@ -143,12 +143,10 @@ public class MainActivity extends BaseActivity {
                 .subscribeOn(Schedulers.io())
                 .map(UserWorkResultBean::getData)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<UserWorkResultBean.DataBean>() {
-                    @Override
-                    public void accept(UserWorkResultBean.DataBean dataBean) throws Exception {
-                        tvFactoryFunds.setText(String.valueOf(dataBean.getPrice()));
-                    }
-                }, (Throwable throwable) -> Log.d(TAG, "accept: 修改金币出现问题----" + throwable.getMessage()))
+                .subscribe(
+                        (UserWorkResultBean.DataBean dataBean) -> tvFactoryFunds.setText(String.valueOf(dataBean.getPrice())),
+                        (Throwable throwable) -> Log.d(TAG, "accept: 修改金币出现问题----" + throwable.getMessage())
+                )
                 .isDisposed();
     }
 
@@ -165,6 +163,5 @@ public class MainActivity extends BaseActivity {
             this.cardCancel = (CardView) rootView.findViewById(R.id.card_cancel);
             this.cardOk = (CardView) rootView.findViewById(R.id.card_Ok);
         }
-
     }
 }
