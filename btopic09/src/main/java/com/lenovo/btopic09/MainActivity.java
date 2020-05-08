@@ -4,7 +4,9 @@ import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -15,8 +17,16 @@ import androidx.cardview.widget.CardView;
 
 import com.lenovo.basic.base.act.BaseActivity;
 import com.lenovo.basic.utils.Network;
+import com.lenovo.btopic09.bean.AllPeopleBean;
+import com.lenovo.btopic09.bean.EnlistLogBean;
+import com.lenovo.btopic09.bean.LogBean;
 import com.lenovo.btopic09.bean.UserWorkBean;
 import com.lenovo.btopic09.bean.UserWorkResultBean;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
@@ -33,6 +43,13 @@ public class MainActivity extends BaseActivity {
     private ListView lvRightList;
     private Handler uiHandler;
     private ApiService remote;
+    private TextView tvLeftState;
+    private TextView tvRightState;
+    private ArrayList<LogBean> leftLogs;
+    private CustomerAdapter leftAdapter;
+    private ArrayList<LogBean> rightLogs;
+    private CustomerAdapter rightAdapter;
+    private SimpleDateFormat simpleDateFormat;
 
     @Override
     protected int getLayoutIdRes() {
@@ -46,16 +63,15 @@ public class MainActivity extends BaseActivity {
         tvCarInventory = (TextView) findViewById(R.id.tv_carInventory);
         lvLeftList = (ListView) findViewById(R.id.lvLeftList);
         lvRightList = (ListView) findViewById(R.id.lvRightList);
+        tvLeftState = (TextView) findViewById(R.id.tv_leftState);
+        tvRightState = (TextView) findViewById(R.id.tv_rightState);
     }
 
     @Override
     protected void initEvent() {
-        tvFactoryFunds.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // 弹出拉投资的对话框
-                alertDialog();
-            }
+        tvFactoryFunds.setOnClickListener((View v) -> {
+            // 弹出拉投资的对话框
+            alertDialog();
         });
     }
 
@@ -65,6 +81,17 @@ public class MainActivity extends BaseActivity {
 
         remote = Network.remote(ApiService.class);
 
+        simpleDateFormat = new SimpleDateFormat("YYYY/MM/dd");
+
+        // 初始化ListView
+        leftLogs = new ArrayList<>();
+        leftAdapter = new CustomerAdapter(leftLogs);
+        lvLeftList.setAdapter(leftAdapter);
+
+        rightLogs = new ArrayList<>();
+        rightAdapter = new CustomerAdapter(rightLogs);
+        lvRightList.setAdapter(rightAdapter);
+
         // 获取当前工厂的信息
         getUserWorkInfo((UserWorkBean.DataBean dataBean) -> {
             Log.d(TAG, "accept: " + dataBean.toString());
@@ -72,6 +99,9 @@ public class MainActivity extends BaseActivity {
             tvMaterialInventory.setText(String.valueOf(dataBean.getPartCapacity()));
             tvCarInventory.setText(String.valueOf(dataBean.getCarCapacity()));
         });
+
+        // 获取所有人员信息
+        getAllPeople();
     }
 
     /**
@@ -85,6 +115,55 @@ public class MainActivity extends BaseActivity {
                 .map((UserWorkBean userWorkBean) -> userWorkBean.getData().get(0))
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(dataBeanConsumer, (Throwable throwable) -> Log.d(TAG, "accept: 获取工厂信息数据失败----" + throwable.getMessage()))
+                .isDisposed();
+    }
+
+    /**
+     * 获取所有人员信息
+     */
+    private void getAllPeople() {
+        remote.getAllPeople().compose(bindToLifecycle())
+                .subscribeOn(Schedulers.io())
+                .map(AllPeopleBean::getData)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<List<AllPeopleBean.DataBean>>() {
+                    @Override
+                    public void accept(List<AllPeopleBean.DataBean> dataBeans) throws Exception {
+                        Log.d(TAG, "accept: " + dataBeans.toString());
+                        // 获取所有员工招募日志
+                        getAllEnlistLog(dataBeans);
+                    }
+                }, (Throwable throwable) -> Log.d(TAG, "accept: 获取所有人员信息出现问题----" + throwable.getMessage()))
+                .isDisposed();
+    }
+
+    /**
+     * 获取员工招募日志
+     *
+     * @param allPeople 所有人员集合
+     */
+    private void getAllEnlistLog(List<AllPeopleBean.DataBean> allPeople) {
+        remote.getEnlistLog().compose(bindToLifecycle())
+                .subscribeOn(Schedulers.io())
+                .map(EnlistLogBean::getData)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<List<EnlistLogBean.DataBean>>() {
+                    @Override
+                    public void accept(List<EnlistLogBean.DataBean> dataBeans) throws Exception {
+                        Log.d(TAG, "accept: " + dataBeans.toString());
+                        for (EnlistLogBean.DataBean dataBean : dataBeans) {
+                            for (AllPeopleBean.DataBean allPerson : allPeople) {
+                                if (dataBean.getUserPeopleId() == allPerson.getId()) {
+                                    int time = dataBean.getTime();
+                                    String timeFormat = simpleDateFormat.format(new Date(time * 1000L));
+                                    leftLogs.add(new LogBean(allPerson.getPeopleName(), String.valueOf(allPerson.getGold()), allPerson.getContent(), timeFormat));
+                                    break;
+                                }
+                            }
+                        }
+                        leftAdapter.notifyDataSetChanged();
+                    }
+                }, (Throwable throwable) -> Log.d(TAG, "accept: 获取招募日志出现问题----" + throwable.getMessage()))
                 .isDisposed();
     }
 
@@ -164,4 +243,55 @@ public class MainActivity extends BaseActivity {
             this.cardOk = (CardView) rootView.findViewById(R.id.card_Ok);
         }
     }
+
+    class CustomerAdapter extends BaseAdapter {
+        private List<LogBean> logBeans;
+        private TextView tvOne;
+        private TextView tvTwo;
+        private TextView tvThree;
+        private TextView tvFour;
+
+        public CustomerAdapter(List<LogBean> logBeans) {
+            this.logBeans = logBeans;
+        }
+
+        @Override
+        public int getCount() {
+            return this.logBeans.size();
+        }
+
+        @Override
+        public LogBean getItem(int position) {
+            return this.logBeans.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View view;
+            if (convertView == null) {
+                view = View.inflate(MainActivity.this, R.layout.item_log, null);
+            } else {
+                view = convertView;
+            }
+            initView(view);
+            tvOne.setText(getItem(position).getName());
+            tvTwo.setText(getItem(position).getGold());
+            tvThree.setText(getItem(position).getContent());
+            tvFour.setText(getItem(position).getTime());
+            return view;
+        }
+
+        private void initView(View view) {
+            tvOne = (TextView) view.findViewById(R.id.tv_one);
+            tvTwo = (TextView) view.findViewById(R.id.tv_two);
+            tvThree = (TextView) view.findViewById(R.id.tv_three);
+            tvFour = (TextView) view.findViewById(R.id.tv_four);
+        }
+    }
+
 }

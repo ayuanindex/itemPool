@@ -152,6 +152,16 @@
                 android:layout_margin="10dp"
                 app:cardCornerRadius="20dp">
 
+                <TextView
+                    android:id="@+id/tv_leftState"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="暂无数据"
+                    android:textColor="#259DED"
+                    android:textSize="16sp"
+                    android:visibility="gone" />
+
                 <ListView
                     android:id="@+id/lvLeftList"
                     android:layout_width="match_parent"
@@ -177,6 +187,16 @@
                 android:layout_height="match_parent"
                 android:layout_margin="10dp"
                 app:cardCornerRadius="20dp">
+
+                <TextView
+                    android:id="@+id/tv_rightState"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="暂无数据"
+                    android:textColor="#259DED"
+                    android:textSize="16sp"
+                    android:visibility="gone" />
 
                 <ListView
                     android:id="@+id/lvRightList"

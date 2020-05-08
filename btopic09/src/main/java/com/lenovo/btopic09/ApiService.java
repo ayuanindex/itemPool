@@ -1,5 +1,7 @@
 package com.lenovo.btopic09;
 
+import com.lenovo.btopic09.bean.AllPeopleBean;
+import com.lenovo.btopic09.bean.EnlistLogBean;
 import com.lenovo.btopic09.bean.UserWorkBean;
 import com.lenovo.btopic09.bean.UserWorkResultBean;
 
@@ -32,4 +34,20 @@ public interface ApiService {
     @POST("dataInterface/UserWorkInfo/updatePrice")
     @FormUrlEncoded
     Observable<UserWorkResultBean> modifyFactoryMoney(@Field("id") int id, @Field("price") int price);
+
+    /**
+     * 获取所有人员信息
+     *
+     * @return 返回可操作的RxJava对象
+     */
+    @POST("dataInterface/People/getAll")
+    Observable<AllPeopleBean> getAllPeople();
+
+    /**
+     * 获取所有员工的招募日志
+     *
+     * @return 返回可操作的RxJava对象
+     */
+    @POST("dataInterface/UserPeopleLog/getAll")
+    Observable<EnlistLogBean> getEnlistLog();
 }
