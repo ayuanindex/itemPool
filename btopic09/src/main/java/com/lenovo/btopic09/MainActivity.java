@@ -1,6 +1,7 @@
 package com.lenovo.btopic09;
 
 import android.annotation.SuppressLint;
+import android.graphics.Color;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
@@ -101,7 +102,15 @@ public class MainActivity extends BaseActivity {
         // 获取当前工厂的信息
         getUserWorkInfo((UserWorkBean.DataBean dataBean) -> {
             Log.d(TAG, "accept: " + dataBean.toString());
-            tvFactoryFunds.setText(String.valueOf(dataBean.getPrice()));
+            int price = dataBean.getPrice();
+
+            if (price < 5000) {
+                tvFactoryFunds.setTextColor(Color.parseColor("#FD4848"));
+            } else {
+                tvFactoryFunds.setTextColor(Color.parseColor("#606060"));
+            }
+
+            tvFactoryFunds.setText(String.valueOf(price));
             tvMaterialInventory.setText(String.valueOf(dataBean.getPartCapacity()));
             tvCarInventory.setText(String.valueOf(dataBean.getCarCapacity()));
         });
