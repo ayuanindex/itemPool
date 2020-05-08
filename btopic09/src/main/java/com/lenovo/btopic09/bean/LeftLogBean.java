@@ -3,16 +3,16 @@ package com.lenovo.btopic09.bean;
 /**
  * @author ayuan
  */
-public class LogBean {
+public class LeftLogBean {
     private String name;
     private String gold;
     private String content;
     private String time;
 
-    public LogBean() {
+    public LeftLogBean() {
     }
 
-    public LogBean(String name, String gold, String content, String time) {
+    public LeftLogBean(String name, String gold, String content, String time) {
         this.name = name;
         this.gold = gold;
         this.content = content;

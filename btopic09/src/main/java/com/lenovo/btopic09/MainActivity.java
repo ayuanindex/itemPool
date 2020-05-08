@@ -1,5 +1,6 @@
 package com.lenovo.btopic09;
 
+import android.annotation.SuppressLint;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
@@ -19,7 +20,10 @@ import com.lenovo.basic.base.act.BaseActivity;
 import com.lenovo.basic.utils.Network;
 import com.lenovo.btopic09.bean.AllPeopleBean;
 import com.lenovo.btopic09.bean.EnlistLogBean;
-import com.lenovo.btopic09.bean.LogBean;
+import com.lenovo.btopic09.bean.LeftLogBean;
+import com.lenovo.btopic09.bean.MakingsBean;
+import com.lenovo.btopic09.bean.MaterialBean;
+import com.lenovo.btopic09.bean.RightLogBean;
 import com.lenovo.btopic09.bean.UserWorkBean;
 import com.lenovo.btopic09.bean.UserWorkResultBean;
 
@@ -45,11 +49,11 @@ public class MainActivity extends BaseActivity {
     private ApiService remote;
     private TextView tvLeftState;
     private TextView tvRightState;
-    private ArrayList<LogBean> leftLogs;
-    private CustomerAdapter leftAdapter;
-    private ArrayList<LogBean> rightLogs;
-    private CustomerAdapter rightAdapter;
+    private ArrayList<LeftLogBean> leftLogs;
+    private LeftCustomerAdapter leftAdapter;
     private SimpleDateFormat simpleDateFormat;
+    private ArrayList<RightLogBean> rightLogs;
+    private RightCustomerAdapter rightAdapter;
 
     @Override
     protected int getLayoutIdRes() {
@@ -75,22 +79,24 @@ public class MainActivity extends BaseActivity {
         });
     }
 
+    @SuppressLint("SimpleDateFormat")
     @Override
     protected void initData() {
         uiHandler = new Handler(getMainLooper());
 
         remote = Network.remote(ApiService.class);
 
-        simpleDateFormat = new SimpleDateFormat("YYYY/MM/dd");
+        simpleDateFormat = new SimpleDateFormat("yyyy/MM/dd");
 
         // 初始化ListView
         leftLogs = new ArrayList<>();
-        leftAdapter = new CustomerAdapter(leftLogs);
+        leftAdapter = new LeftCustomerAdapter();
         lvLeftList.setAdapter(leftAdapter);
 
         rightLogs = new ArrayList<>();
-        rightAdapter = new CustomerAdapter(rightLogs);
+        rightAdapter = new RightCustomerAdapter();
         lvRightList.setAdapter(rightAdapter);
+
 
         // 获取当前工厂的信息
         getUserWorkInfo((UserWorkBean.DataBean dataBean) -> {
@@ -102,6 +108,9 @@ public class MainActivity extends BaseActivity {
 
         // 获取所有人员信息
         getAllPeople();
+
+        // 获取原材料信息
+        getRawMaterials();
     }
 
     /**
@@ -138,6 +147,68 @@ public class MainActivity extends BaseActivity {
     }
 
     /**
+     * 获取所有原材料信息
+     */
+    private void getRawMaterials() {
+        remote.getAllMaterial().compose(bindToLifecycle())
+                .subscribeOn(Schedulers.io())
+                .map(MaterialBean::getData)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<List<MaterialBean.DataBean>>() {
+                    @Override
+                    public void accept(List<MaterialBean.DataBean> dataBeans) throws Exception {
+                        Log.d(TAG, "accept: " + dataBeans.toString());
+                        getAllMaking(dataBeans);
+                    }
+                }, (Throwable throwable) -> Log.d(TAG, "accept: 获取所有原料信息出现问题----" + throwable.getMessage()))
+                .isDisposed();
+    }
+
+    /**
+     * 获取所有的原材料日志
+     *
+     * @param allMaterial 所有原材料信息
+     */
+    private void getAllMaking(List<MaterialBean.DataBean> allMaterial) {
+        remote.getAllMaking().compose(bindToLifecycle())
+                .subscribeOn(Schedulers.io())
+                .map(MakingsBean::getData)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<List<MakingsBean.DataBean>>() {
+                    @Override
+                    public void accept(List<MakingsBean.DataBean> dataBeans) throws Exception {
+                        Log.d(TAG, "accept: " + dataBeans.toString());
+                        if (dataBeans.size() == 0) {
+                            lvRightList.setVisibility(View.GONE);
+                            tvRightState.setVisibility(View.VISIBLE);
+                        } else {
+                            lvRightList.setVisibility(View.VISIBLE);
+                            tvRightState.setVisibility(View.GONE);
+
+                            for (MakingsBean.DataBean dataBean : dataBeans) {
+                                for (MaterialBean.DataBean bean : allMaterial) {
+                                    if (dataBean.getPartId() == bean.getId()) {
+                                        String formatTime = simpleDateFormat.format(new Date(dataBean.getTime() * 1000L));
+                                        rightLogs.add(new RightLogBean(
+                                                bean.getMaterialName(),
+                                                bean.getContent(),
+                                                String.valueOf(dataBean.getNum()),
+                                                String.valueOf(bean.getPrice()),
+                                                formatTime
+                                        ));
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        rightAdapter.notifyDataSetChanged();
+                    }
+                }, (Throwable throwable) -> Log.d(TAG, "accept: 获取所有原材料日志出现问题----" + throwable.getMessage()))
+                .isDisposed();
+    }
+
+    /**
      * 获取员工招募日志
      *
      * @param allPeople 所有人员集合
@@ -151,22 +222,33 @@ public class MainActivity extends BaseActivity {
                     @Override
                     public void accept(List<EnlistLogBean.DataBean> dataBeans) throws Exception {
                         Log.d(TAG, "accept: " + dataBeans.toString());
-                        for (EnlistLogBean.DataBean dataBean : dataBeans) {
-                            for (AllPeopleBean.DataBean allPerson : allPeople) {
-                                if (dataBean.getUserPeopleId() == allPerson.getId()) {
-                                    int time = dataBean.getTime();
-                                    String timeFormat = simpleDateFormat.format(new Date(time * 1000L));
-                                    leftLogs.add(new LogBean(allPerson.getPeopleName(), String.valueOf(allPerson.getGold()), allPerson.getContent(), timeFormat));
-                                    break;
+                        if (dataBeans.size() == 0) {
+                            lvLeftList.setVisibility(View.GONE);
+                            tvLeftState.setVisibility(View.VISIBLE);
+                        } else {
+                            lvLeftList.setVisibility(View.VISIBLE);
+                            tvLeftState.setVisibility(View.GONE);
+
+                            for (EnlistLogBean.DataBean dataBean : dataBeans) {
+                                for (AllPeopleBean.DataBean allPerson : allPeople) {
+                                    if (dataBean.getUserPeopleId() == allPerson.getId()) {
+                                        int time = dataBean.getTime();
+                                        String timeFormat = simpleDateFormat.format(new Date(time * 1000L));
+                                        leftLogs.add(new LeftLogBean(allPerson.getPeopleName(), String.valueOf(allPerson.getGold()), allPerson.getContent(), timeFormat));
+                                        break;
+                                    }
                                 }
                             }
+                            leftAdapter.notifyDataSetChanged();
                         }
-                        leftAdapter.notifyDataSetChanged();
                     }
                 }, (Throwable throwable) -> Log.d(TAG, "accept: 获取招募日志出现问题----" + throwable.getMessage()))
                 .isDisposed();
     }
 
+    /**
+     * 投资对话框
+     */
     private void alertDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         AlertDialog alertDialog = builder.create();
@@ -244,25 +326,20 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    class CustomerAdapter extends BaseAdapter {
-        private List<LogBean> logBeans;
+    class LeftCustomerAdapter extends BaseAdapter {
         private TextView tvOne;
         private TextView tvTwo;
         private TextView tvThree;
         private TextView tvFour;
 
-        public CustomerAdapter(List<LogBean> logBeans) {
-            this.logBeans = logBeans;
-        }
-
         @Override
         public int getCount() {
-            return this.logBeans.size();
+            return leftLogs.size();
         }
 
         @Override
-        public LogBean getItem(int position) {
-            return this.logBeans.get(position);
+        public LeftLogBean getItem(int position) {
+            return leftLogs.get(position);
         }
 
         @Override
@@ -274,7 +351,7 @@ public class MainActivity extends BaseActivity {
         public View getView(int position, View convertView, ViewGroup parent) {
             View view;
             if (convertView == null) {
-                view = View.inflate(MainActivity.this, R.layout.item_log, null);
+                view = View.inflate(MainActivity.this, R.layout.item_left_log, null);
             } else {
                 view = convertView;
             }
@@ -294,4 +371,53 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+    class RightCustomerAdapter extends BaseAdapter {
+
+        private TextView tvOne;
+        private TextView tvTwo;
+        private TextView tvThree;
+        private TextView tvFour;
+        private TextView tvFive;
+
+        @Override
+        public int getCount() {
+            return rightLogs.size();
+        }
+
+        @Override
+        public RightLogBean getItem(int position) {
+            return rightLogs.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View view;
+            if (convertView == null) {
+                view = View.inflate(MainActivity.this, R.layout.item_right_log, null);
+            } else {
+                view = convertView;
+            }
+            initView(view);
+
+            tvOne.setText(getItem(position).getName());
+            tvTwo.setText(getItem(position).getSupply());
+            tvThree.setText(getItem(position).getNum());
+            tvFour.setText(getItem(position).getPrice());
+            tvFive.setText(getItem(position).getTime());
+            return view;
+        }
+
+        private void initView(View view) {
+            tvOne = (TextView) view.findViewById(R.id.tv_one);
+            tvTwo = (TextView) view.findViewById(R.id.tv_two);
+            tvThree = (TextView) view.findViewById(R.id.tv_three);
+            tvFour = (TextView) view.findViewById(R.id.tv_four);
+            tvFive = (TextView) view.findViewById(R.id.tv_five);
+        }
+    }
 }

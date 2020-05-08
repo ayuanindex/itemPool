@@ -2,6 +2,8 @@ package com.lenovo.btopic09;
 
 import com.lenovo.btopic09.bean.AllPeopleBean;
 import com.lenovo.btopic09.bean.EnlistLogBean;
+import com.lenovo.btopic09.bean.MakingsBean;
+import com.lenovo.btopic09.bean.MaterialBean;
 import com.lenovo.btopic09.bean.UserWorkBean;
 import com.lenovo.btopic09.bean.UserWorkResultBean;
 
@@ -50,4 +52,20 @@ public interface ApiService {
      */
     @POST("dataInterface/UserPeopleLog/getAll")
     Observable<EnlistLogBean> getEnlistLog();
+
+    /**
+     * 获取所有原材料信息
+     *
+     * @return 返回可操作的RxJava对象
+     */
+    @POST("Interface/index/getMaterial")
+    Observable<MaterialBean> getAllMaterial();
+
+    /**
+     * 获取所有原材料日志
+     *
+     * @return 返回可操作的RxJava对象
+     */
+    @POST("dataInterface/UserPartPurchaseLog/getAll")
+    Observable<MakingsBean> getAllMaking();
 }
