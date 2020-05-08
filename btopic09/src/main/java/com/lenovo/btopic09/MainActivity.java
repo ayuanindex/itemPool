@@ -135,13 +135,10 @@ public class MainActivity extends BaseActivity {
                 .subscribeOn(Schedulers.io())
                 .map(AllPeopleBean::getData)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<List<AllPeopleBean.DataBean>>() {
-                    @Override
-                    public void accept(List<AllPeopleBean.DataBean> dataBeans) throws Exception {
-                        Log.d(TAG, "accept: " + dataBeans.toString());
-                        // 获取所有员工招募日志
-                        getAllEnlistLog(dataBeans);
-                    }
+                .subscribe((List<AllPeopleBean.DataBean> dataBeans) -> {
+                    Log.d(TAG, "accept: " + dataBeans.toString());
+                    // 获取所有员工招募日志
+                    getAllEnlistLog(dataBeans);
                 }, (Throwable throwable) -> Log.d(TAG, "accept: 获取所有人员信息出现问题----" + throwable.getMessage()))
                 .isDisposed();
     }
@@ -154,12 +151,9 @@ public class MainActivity extends BaseActivity {
                 .subscribeOn(Schedulers.io())
                 .map(MaterialBean::getData)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<List<MaterialBean.DataBean>>() {
-                    @Override
-                    public void accept(List<MaterialBean.DataBean> dataBeans) throws Exception {
-                        Log.d(TAG, "accept: " + dataBeans.toString());
-                        getAllMaking(dataBeans);
-                    }
+                .subscribe((List<MaterialBean.DataBean> dataBeans) -> {
+                    Log.d(TAG, "accept: " + dataBeans.toString());
+                    getAllMaking(dataBeans);
                 }, (Throwable throwable) -> Log.d(TAG, "accept: 获取所有原料信息出现问题----" + throwable.getMessage()))
                 .isDisposed();
     }
@@ -174,36 +168,34 @@ public class MainActivity extends BaseActivity {
                 .subscribeOn(Schedulers.io())
                 .map(MakingsBean::getData)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<List<MakingsBean.DataBean>>() {
-                    @Override
-                    public void accept(List<MakingsBean.DataBean> dataBeans) throws Exception {
-                        Log.d(TAG, "accept: " + dataBeans.toString());
-                        if (dataBeans.size() == 0) {
-                            lvRightList.setVisibility(View.GONE);
-                            tvRightState.setVisibility(View.VISIBLE);
-                        } else {
-                            lvRightList.setVisibility(View.VISIBLE);
-                            tvRightState.setVisibility(View.GONE);
+                .subscribe((List<MakingsBean.DataBean> dataBeans) -> {
+                    Log.d(TAG, "accept: " + dataBeans.toString());
+                    if (dataBeans.size() == 0) {
+                        lvRightList.setVisibility(View.GONE);
+                        tvRightState.setVisibility(View.VISIBLE);
+                    } else {
+                        lvRightList.setVisibility(View.VISIBLE);
+                        tvRightState.setVisibility(View.GONE);
 
-                            for (MakingsBean.DataBean dataBean : dataBeans) {
-                                for (MaterialBean.DataBean bean : allMaterial) {
-                                    if (dataBean.getPartId() == bean.getId()) {
-                                        String formatTime = simpleDateFormat.format(new Date(dataBean.getTime() * 1000L));
-                                        rightLogs.add(new RightLogBean(
-                                                bean.getMaterialName(),
-                                                bean.getContent(),
-                                                String.valueOf(dataBean.getNum()),
-                                                String.valueOf(bean.getPrice()),
-                                                formatTime
-                                        ));
-                                        break;
-                                    }
+                        for (MakingsBean.DataBean dataBean : dataBeans) {
+                            for (MaterialBean.DataBean bean : allMaterial) {
+                                if (dataBean.getPartId() == bean.getId()) {
+                                    Date date = new Date(dataBean.getTime() * 1000L);
+                                    String formatTime = simpleDateFormat.format(date);
+                                    rightLogs.add(new RightLogBean(
+                                            bean.getMaterialName(),
+                                            bean.getContent(),
+                                            String.valueOf(dataBean.getNum()),
+                                            String.valueOf(bean.getPrice()),
+                                            formatTime
+                                    ));
+                                    break;
                                 }
                             }
                         }
-
-                        rightAdapter.notifyDataSetChanged();
                     }
+
+                    rightAdapter.notifyDataSetChanged();
                 }, (Throwable throwable) -> Log.d(TAG, "accept: 获取所有原材料日志出现问题----" + throwable.getMessage()))
                 .isDisposed();
     }
@@ -218,29 +210,26 @@ public class MainActivity extends BaseActivity {
                 .subscribeOn(Schedulers.io())
                 .map(EnlistLogBean::getData)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<List<EnlistLogBean.DataBean>>() {
-                    @Override
-                    public void accept(List<EnlistLogBean.DataBean> dataBeans) throws Exception {
-                        Log.d(TAG, "accept: " + dataBeans.toString());
-                        if (dataBeans.size() == 0) {
-                            lvLeftList.setVisibility(View.GONE);
-                            tvLeftState.setVisibility(View.VISIBLE);
-                        } else {
-                            lvLeftList.setVisibility(View.VISIBLE);
-                            tvLeftState.setVisibility(View.GONE);
+                .subscribe((List<EnlistLogBean.DataBean> dataBeans) -> {
+                    Log.d(TAG, "accept: " + dataBeans.toString());
+                    if (dataBeans.size() == 0) {
+                        lvLeftList.setVisibility(View.GONE);
+                        tvLeftState.setVisibility(View.VISIBLE);
+                    } else {
+                        lvLeftList.setVisibility(View.VISIBLE);
+                        tvLeftState.setVisibility(View.GONE);
 
-                            for (EnlistLogBean.DataBean dataBean : dataBeans) {
-                                for (AllPeopleBean.DataBean allPerson : allPeople) {
-                                    if (dataBean.getUserPeopleId() == allPerson.getId()) {
-                                        int time = dataBean.getTime();
-                                        String timeFormat = simpleDateFormat.format(new Date(time * 1000L));
-                                        leftLogs.add(new LeftLogBean(allPerson.getPeopleName(), String.valueOf(allPerson.getGold()), allPerson.getContent(), timeFormat));
-                                        break;
-                                    }
+                        for (EnlistLogBean.DataBean dataBean : dataBeans) {
+                            for (AllPeopleBean.DataBean allPerson : allPeople) {
+                                if (dataBean.getUserPeopleId() == allPerson.getId()) {
+                                    int time = dataBean.getTime();
+                                    String timeFormat = simpleDateFormat.format(new Date(time * 1000L));
+                                    leftLogs.add(new LeftLogBean(allPerson.getPeopleName(), String.valueOf(allPerson.getGold()), allPerson.getContent(), timeFormat));
+                                    break;
                                 }
                             }
-                            leftAdapter.notifyDataSetChanged();
                         }
+                        leftAdapter.notifyDataSetChanged();
                     }
                 }, (Throwable throwable) -> Log.d(TAG, "accept: 获取招募日志出现问题----" + throwable.getMessage()))
                 .isDisposed();
@@ -256,36 +245,28 @@ public class MainActivity extends BaseActivity {
         alertDialog.setView(inflate);
         ViewHolder viewHolder = new ViewHolder(inflate);
 
-        viewHolder.cardOk.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String moneyStr = viewHolder.etMoney.getText().toString().trim();
-                if (TextUtils.isEmpty(moneyStr)) {
-                    Toast.makeText(MainActivity.this, "请输入正确金额", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                int moneyInt = Integer.parseInt(moneyStr);
-
-                uiHandler.postDelayed(() -> {
-                    // 获取当前工厂的资金
-                    getUserWorkInfo((UserWorkBean.DataBean dataBean) -> {
-                        int price = dataBean.getPrice();
-                        price += moneyInt;
-                        modifyFactoryMoney(price);
-                    });
-                }, 10000);
-
-                alertDialog.dismiss();
+        viewHolder.cardOk.setOnClickListener((View v) -> {
+            String moneyStr = viewHolder.etMoney.getText().toString().trim();
+            if (TextUtils.isEmpty(moneyStr)) {
+                Toast.makeText(MainActivity.this, "请输入正确金额", Toast.LENGTH_SHORT).show();
+                return;
             }
+
+            int moneyInt = Integer.parseInt(moneyStr);
+
+            uiHandler.postDelayed(() -> {
+                // 获取当前工厂的资金
+                getUserWorkInfo((UserWorkBean.DataBean dataBean) -> {
+                    int price = dataBean.getPrice();
+                    price += moneyInt;
+                    modifyFactoryMoney(price);
+                });
+            }, 10000);
+
+            alertDialog.dismiss();
         });
 
-        viewHolder.cardCancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                alertDialog.dismiss();
-            }
-        });
+        viewHolder.cardCancel.setOnClickListener((View v) -> alertDialog.dismiss());
 
         Window window = alertDialog.getWindow();
         if (window != null) {
