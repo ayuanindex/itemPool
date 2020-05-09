@@ -2,6 +2,7 @@ package com.lenovo.btopic10;
 
 import com.lenovo.btopic10.bean.AllProductionLineBean;
 import com.lenovo.btopic10.bean.AllStageBean;
+import com.lenovo.btopic10.bean.CreateResultBean;
 import com.lenovo.btopic10.bean.UpdateAiResultBean;
 
 import io.reactivex.Observable;
@@ -39,4 +40,15 @@ public interface ApiService {
     @POST("dataInterface/UserProductionLine/updateIsAI")
     @FormUrlEncoded
     Observable<UpdateAiResultBean> updateAiState(@Field("id") int id, @Field("isAI") int isAi);
+
+    /**
+     * 创建生产线
+     *
+     * @param lineId 生产线类型ID
+     * @param pos    创建生产线的目标位置
+     * @return 返回可操组的RxJava对象
+     */
+    @POST("Interface/index/createStudentLine")
+    @FormUrlEncoded
+    Observable<CreateResultBean> createProductionLine(@Field("lineId") int lineId, @Field("pos") int pos);
 }
