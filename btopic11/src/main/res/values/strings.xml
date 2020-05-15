@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">btopic11</string>
+    <string-array name="types">
+        <item>原材料</item>
+        <item>人员</item>
+        <item>生产线</item>
+        <item>维修生产环节</item>
+        <item>维修车辆</item>
+        <item>售出</item>
+    </string-array>
+</resources>
